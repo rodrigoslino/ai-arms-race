@@ -38,6 +38,7 @@ interface Enemy extends Body {
   maxHp: number;
   phase: number;
   fireIn: number;
+  formation?: boolean;
 }
 
 interface Pickup extends Body {
@@ -86,6 +87,8 @@ interface GameWorld {
   weaponLevel: number;
   bossSpawned: boolean;
   bossDefeated: boolean;
+  layoffWaveSpawned: boolean;
+  layoffWaveTotal: number;
   shake: number;
   banner: string;
   bannerTime: number;
@@ -157,6 +160,8 @@ function makeWorld(): GameWorld {
     weaponLevel: 1,
     bossSpawned: false,
     bossDefeated: false,
+    layoffWaveSpawned: false,
+    layoffWaveTotal: 0,
     shake: 0,
     banner: "Q3 GROWTH INITIATIVE",
     bannerTime: 2.4,
@@ -325,7 +330,17 @@ function drawScene(ctx: CanvasRenderingContext2D, w: GameWorld) {
     if (e.kind === "REALITY") drawBoss(ctx, e);
     else if (["EMPLOYEE", "JUNIOR", "ARTIST", "SUPPORT"].includes(e.kind)) drawWorker(ctx, e);
     else drawConcept(ctx, e);
-    if (e.kind !== "REALITY") {
+    if (e.formation) {
+      ctx.fillStyle = "#2b3046";
+      ctx.fillRect(Math.round(e.x + 7), Math.round(e.y - 6), e.w - 14, 3);
+      ctx.fillStyle = e.hp === e.maxHp ? "#67f5c1" : "#ffcf54";
+      ctx.fillRect(
+        Math.round(e.x + 7),
+        Math.round(e.y - 6),
+        (e.w - 14) * (e.hp / e.maxHp),
+        3,
+      );
+    } else if (e.kind !== "REALITY") {
       pixelText(ctx, e.kind, e.x + e.w / 2, e.y - 10, 9, enemyStats[e.kind].color, "center");
     }
   }
@@ -389,6 +404,26 @@ function drawScene(ctx: CanvasRenderingContext2D, w: GameWorld) {
     ctx.fillRect(322, 84, 394 * (boss.hp / boss.maxHp), 10);
   }
 
+  const formationRemaining = w.enemies.filter((enemy) => enemy.formation).length;
+  if (formationRemaining > 0) {
+    const processed = w.layoffWaveTotal - formationRemaining;
+    ctx.fillStyle = "rgba(5,6,12,.94)";
+    ctx.fillRect(304, 76, 352, 36);
+    ctx.strokeStyle = "#ffcf54";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(304, 76, 352, 36);
+    pixelText(ctx, "MASS LAYOFF", 320, 88, 11, "#ff435f");
+    pixelText(
+      ctx,
+      `${processed.toString().padStart(2, "0")} / ${w.layoffWaveTotal}`,
+      638,
+      94,
+      16,
+      "#ffcf54",
+      "right",
+    );
+  }
+
   if (w.bannerTime > 0) {
     ctx.fillStyle = "rgba(5,6,12,.88)";
     ctx.fillRect(190, 252, 580, 72);
@@ -438,6 +473,43 @@ function spawnEnemy(w: GameWorld) {
     phase: Math.random() * Math.PI * 2,
     fireIn: 0.8 + Math.random() * 2.8,
   });
+}
+
+function spawnLayoffFormation(w: GameWorld) {
+  const columns = 10;
+  const rows = 4;
+  const gapX = 8;
+  const gapY = 8;
+  const stats = enemyStats.EMPLOYEE;
+  const formationWidth = columns * stats.w + (columns - 1) * gapX;
+  const startX = (WIDTH - formationWidth) / 2;
+  const startY = 126;
+  const sharedPhase = Math.random() * Math.PI * 2;
+
+  for (let row = 0; row < rows; row += 1) {
+    for (let column = 0; column < columns; column += 1) {
+      w.enemies.push({
+        x: startX + column * (stats.w + gapX),
+        y: startY + row * (stats.h + gapY),
+        w: stats.w,
+        h: stats.h,
+        vx: 0,
+        vy: 9,
+        kind: "EMPLOYEE",
+        hp: 2,
+        maxHp: 2,
+        phase: sharedPhase,
+        fireIn: 99,
+        formation: true,
+      });
+    }
+  }
+
+  w.layoffWaveSpawned = true;
+  w.layoffWaveTotal = columns * rows;
+  w.banner = "ALL-HANDS RESTRUCTURING";
+  w.bannerTime = 2.2;
+  w.shake = 0.8;
 }
 
 function spawnPickup(w: GameWorld) {
@@ -566,8 +638,10 @@ function updateWorld(
     playSound(360, 0.025, 0.018);
   }
 
-  if (!w.bossSpawned && w.elapsed >= 36) spawnBoss(w);
-  if (!w.bossSpawned && w.spawnIn <= 0) {
+  const formationRemaining = w.enemies.some((enemy) => enemy.formation);
+  if (!w.layoffWaveSpawned && w.elapsed >= 9) spawnLayoffFormation(w);
+  if (!w.bossSpawned && w.elapsed >= 38 && !formationRemaining) spawnBoss(w);
+  if (!w.bossSpawned && !formationRemaining && w.spawnIn <= 0) {
     spawnEnemy(w);
     w.spawnIn = Math.max(0.28, 0.88 - w.elapsed * 0.012) * (0.75 + Math.random() * 0.55);
   }
@@ -613,7 +687,7 @@ function updateWorld(
       }
     } else {
       enemy.y += enemy.vy * dt;
-      enemy.x += (enemy.vx + Math.sin(enemy.phase) * 30) * dt;
+      enemy.x += (enemy.vx + Math.sin(enemy.phase) * (enemy.formation ? 42 : 30)) * dt;
       enemy.fireIn -= dt;
       if (["REGULATION", "ETHICS", "UNION"].includes(enemy.kind) && enemy.fireIn <= 0) {
         w.enemyBullets.push({
