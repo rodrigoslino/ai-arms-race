@@ -412,6 +412,27 @@ kbd {
   white-space: nowrap;
 }
 
+.source-meta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.source-meta a {
+  color: inherit;
+  text-decoration: none;
+  opacity: 0.62;
+  transition: color 120ms ease, opacity 120ms ease;
+}
+
+.source-meta a:hover,
+.source-meta a:focus-visible {
+  color: var(--blue);
+  opacity: 1;
+  outline: none;
+}
+
 .live-dot {
   display: inline-block;
   width: 7px;

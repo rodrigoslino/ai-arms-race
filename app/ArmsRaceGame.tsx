@@ -1353,7 +1353,17 @@ export function ArmsRaceGame() {
           <span>AGI RUMOR +8%</span>
           <span>REVENUE: NOT FOUND</span>
         </p>
-        <p>BUILD 0.2.0</p>
+        <p className="source-meta">
+          <a
+            href="https://github.com/rodrigoslino/ai-arms-race"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="View AI Arms Race source code on GitHub"
+          >
+            SOURCE ↗
+          </a>
+          <span>BUILD 0.2.0</span>
+        </p>
       </footer>
     </main>
   );
