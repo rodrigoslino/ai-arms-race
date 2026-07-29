@@ -1012,6 +1012,7 @@ function updateWorld(
 }
 
 export function ArmsRaceGame() {
+  const gamePageRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const worldRef = useRef<GameWorld>(makeWorld());
   const screenRef = useRef<Screen>("title");
@@ -1067,7 +1068,24 @@ export function ArmsRaceGame() {
     });
   }, []);
 
-  const toggleExpanded = useCallback(() => {
+  const toggleExpanded = useCallback(async () => {
+    if (document.fullscreenElement) {
+      await document.exitFullscreen();
+      setExpanded(false);
+      return;
+    }
+
+    const gamePage = gamePageRef.current;
+    if (gamePage?.requestFullscreen) {
+      try {
+        await gamePage.requestFullscreen();
+        setExpanded(true);
+        return;
+      } catch {
+        // iOS and embedded browsers may reject native fullscreen.
+      }
+    }
+
     setExpanded((current) => !current);
   }, []);
 
@@ -1081,6 +1099,14 @@ export function ArmsRaceGame() {
     document.documentElement.classList.toggle("game-expanded", expanded);
     return () => document.documentElement.classList.remove("game-expanded");
   }, [expanded]);
+
+  useEffect(() => {
+    const syncFullscreenState = () => {
+      if (!document.fullscreenElement) setExpanded(false);
+    };
+    document.addEventListener("fullscreenchange", syncFullscreenState);
+    return () => document.removeEventListener("fullscreenchange", syncFullscreenState);
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -1142,7 +1168,7 @@ export function ArmsRaceGame() {
   };
 
   return (
-    <main className={`game-page${expanded ? " expanded" : ""}`}>
+    <main ref={gamePageRef} className={`game-page${expanded ? " expanded" : ""}`}>
       <header className="topbar">
         <a className="brand" href="#" aria-label="AI Arms Race home">
           <span className="brand-mark" aria-hidden="true">▲</span>
@@ -1156,10 +1182,10 @@ export function ArmsRaceGame() {
           <button
             className="icon-button expand-button"
             onClick={toggleExpanded}
-            aria-label={expanded ? "Exit expanded game view" : "Expand game view"}
+            aria-label={expanded ? "Exit fullscreen game" : "Open game in fullscreen"}
             aria-pressed={expanded}
           >
-            {expanded ? "EXIT VIEW" : "EXPAND"}
+            {expanded ? "EXIT FULLSCREEN" : "FULLSCREEN"}
           </button>
         </div>
       </header>

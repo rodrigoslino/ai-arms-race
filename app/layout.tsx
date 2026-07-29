@@ -19,9 +19,11 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/og-ai-arms-race.png",
-        width: 1672,
-        height: 941,
+        url: "/og-ai-arms-race-share-v2.jpg",
+        secureUrl: "/og-ai-arms-race-share-v2.jpg",
+        width: 1200,
+        height: 630,
+        type: "image/jpeg",
         alt: "AI Arms Race retro arcade game",
       },
     ],
@@ -31,7 +33,7 @@ export const metadata: Metadata = {
     title: "AI Arms Race",
     description:
       "A retro arcade satire about AI hype, layoffs, compute resources, and the final boss: Reality.",
-    images: ["/og-ai-arms-race.png"],
+    images: ["/og-ai-arms-race-share-v2.jpg"],
   },
 };
 

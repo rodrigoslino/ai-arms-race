@@ -105,7 +105,7 @@ button {
 }
 
 .expand-button {
-  display: none;
+  display: block;
 }
 
 .icon-button:hover,
@@ -517,10 +517,6 @@ kbd {
 }
 
 @media (pointer: coarse), (max-width: 900px) {
-  .expand-button {
-    display: block;
-  }
-
   .game-canvas {
     cursor: default;
   }
