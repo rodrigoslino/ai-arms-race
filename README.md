@@ -9,6 +9,12 @@ cycle can avoid.
 
 > This game is satire. The incentives are real.
 
+## Screenshots
+
+![AI Arms Race title screen](docs/screenshots/ai-arms-race-title.jpg)
+
+![Mass Layoff formation gameplay](docs/screenshots/ai-arms-race-mass-layoff.jpg)
+
 ## Play online
 
 [ai-arms-race-ashy.vercel.app](https://ai-arms-race-ashy.vercel.app)
