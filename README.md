@@ -9,6 +9,10 @@ cycle can avoid.
 
 > This game is satire. The incentives are real.
 
+## Play online
+
+[ai-arms-race-ashy.vercel.app](https://ai-arms-race-ashy.vercel.app)
+
 ## Play
 
 - Move with `WASD` or the arrow keys
