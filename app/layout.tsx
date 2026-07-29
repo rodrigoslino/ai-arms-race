@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     images: [
       {
         url: "/og-ai-arms-race-share-v2.jpg",
-        secureUrl: "/og-ai-arms-race-share-v2.jpg",
+        secureUrl: "https://ai-arms-race-ashy.vercel.app/og-ai-arms-race-share-v2.jpg",
         width: 1200,
         height: 630,
         type: "image/jpeg",
