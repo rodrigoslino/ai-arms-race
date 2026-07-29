@@ -18,6 +18,7 @@
 
 html {
   background: var(--ink);
+  overscroll-behavior: none;
 }
 
 body {
@@ -29,6 +30,7 @@ body {
   font-family: "Courier New", Courier, monospace;
   min-height: 100vh;
   overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
 }
 
 button,
@@ -85,7 +87,6 @@ button {
 }
 
 .icon-button {
-  justify-self: end;
   border: 1px solid var(--line);
   border-bottom-width: 3px;
   background: #121725;
@@ -95,6 +96,16 @@ button {
   font-weight: 900;
   letter-spacing: 0.08em;
   cursor: pointer;
+}
+
+.header-actions {
+  justify-self: end;
+  display: flex;
+  gap: 8px;
+}
+
+.expand-button {
+  display: none;
 }
 
 .icon-button:hover,
@@ -132,6 +143,11 @@ button {
   image-rendering: pixelated;
   touch-action: none;
   cursor: crosshair;
+}
+
+.mobile-controls,
+.rotate-hint {
+  display: none;
 }
 
 .scanlines,
@@ -500,6 +516,112 @@ kbd {
   }
 }
 
+@media (pointer: coarse), (max-width: 900px) {
+  .expand-button {
+    display: block;
+  }
+
+  .game-canvas {
+    cursor: default;
+  }
+
+  .mobile-controls {
+    position: absolute;
+    left: 3%;
+    bottom: 4%;
+    z-index: 7;
+    display: grid;
+    grid-template-areas:
+      ". up ."
+      "left down right";
+    grid-template-columns: repeat(3, clamp(30px, 7.5vw, 48px));
+    grid-template-rows: repeat(2, clamp(30px, 7.5vw, 48px));
+    gap: clamp(2px, 0.8vw, 6px);
+    touch-action: none;
+  }
+
+  .touch-key {
+    border: 1px solid rgba(141, 232, 255, 0.65);
+    border-bottom-width: 3px;
+    background: rgba(8, 13, 24, 0.72);
+    color: var(--blue);
+    font-size: clamp(11px, 2.6vw, 18px);
+    font-weight: 900;
+    line-height: 1;
+    padding: 0;
+    border-radius: 3px;
+    box-shadow: inset 0 0 15px rgba(141, 232, 255, 0.08);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    touch-action: none;
+  }
+
+  .touch-key:active {
+    transform: translateY(2px);
+    border-bottom-width: 1px;
+    background: rgba(35, 53, 77, 0.9);
+    color: var(--paper);
+  }
+
+  .touch-up {
+    grid-area: up;
+  }
+
+  .touch-left {
+    grid-area: left;
+  }
+
+  .touch-down {
+    grid-area: down;
+  }
+
+  .touch-right {
+    grid-area: right;
+  }
+}
+
+html.game-expanded,
+html.game-expanded body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.game-page.expanded {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  min-height: 0;
+  background:
+    radial-gradient(circle at 50% 45%, rgba(47, 55, 91, 0.28), transparent 55%),
+    var(--ink);
+}
+
+.expanded .topbar {
+  flex: 0 0 48px;
+  min-height: 48px;
+}
+
+.expanded .game-shell {
+  width: 100%;
+  min-height: 0;
+  margin: 0;
+  padding: 7px;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.expanded .canvas-wrap {
+  width: min(100%, calc((100dvh - 62px) * 1.6));
+  max-height: calc(100dvh - 62px);
+}
+
+.expanded .game-footer {
+  display: none;
+}
+
 @media (max-width: 520px) {
   .game-page {
     justify-content: space-between;
@@ -509,13 +631,32 @@ kbd {
     padding: 6px;
   }
 
+  .topbar {
+    min-height: 48px;
+    padding: 0 8px;
+  }
+
+  .header-actions {
+    gap: 4px;
+  }
+
+  .icon-button {
+    padding: 7px 7px 5px;
+    font-size: 8px;
+  }
+
   .title-screen h1 {
-    font-size: 48px;
+    font-size: clamp(38px, 12vw, 54px);
+  }
+
+  .overlay {
+    padding: 20px 14px 12px;
   }
 
   .deck {
-    margin: 10px 0 12px;
-    line-height: 1.35;
+    margin: 7px 0 8px;
+    font-size: clamp(8px, 2.7vw, 11px);
+    line-height: 1.25;
     max-width: 300px;
   }
 
@@ -524,15 +665,72 @@ kbd {
   }
 
   .eyebrow {
-    margin-bottom: 7px;
+    margin-bottom: 4px;
+    font-size: 6px;
+  }
+
+  .start-button {
+    min-width: 190px;
+    padding: 7px 12px 5px;
+    font-size: 9px;
+  }
+
+  .start-button small {
+    font-size: 6px;
   }
 
   .end-screen h2 {
-    font-size: 36px;
+    font-size: clamp(28px, 9vw, 38px);
   }
 
   .end-screen > p:not(.eyebrow) {
-    margin: 8px 0;
+    margin: 4px 0;
+    font-size: 8px;
+  }
+
+  .results {
+    margin: 5px 0 7px;
+  }
+
+  .results div {
+    min-height: 36px;
+    padding: 4px 2px;
+    gap: 3px;
+  }
+
+  .results span {
+    font-size: 5px;
+  }
+
+  .results strong {
+    font-size: 10px;
+  }
+
+  .game-footer {
+    font-size: 6px;
+  }
+}
+
+@media (pointer: coarse) and (orientation: portrait), (max-width: 520px) and (orientation: portrait) {
+  .rotate-hint {
+    position: absolute;
+    right: 2%;
+    bottom: 3%;
+    z-index: 7;
+    display: block;
+    width: 42%;
+    margin: 0;
+    color: rgba(184, 194, 200, 0.72);
+    font-size: clamp(5px, 1.6vw, 8px);
+    font-weight: 900;
+    line-height: 1.4;
+    letter-spacing: 0.06em;
+    text-align: right;
+    pointer-events: none;
+  }
+
+  .expanded .rotate-hint {
+    display: none;
   }
 }
 

@@ -16,7 +16,14 @@ type EnemyKind =
   | "ETHICS"
   | "UNION"
   | "REALITY";
-type PickupKind = "LAYOFFS" | "SILICON" | "RARE EARTHS" | "VC FUNDING" | "GPU";
+type PickupKind =
+  | "LAYOFFS"
+  | "SILICON"
+  | "RARE EARTHS"
+  | "VC FUNDING"
+  | "GPU"
+  | "RAM"
+  | "WATER";
 
 interface Body {
   x: number;
@@ -39,6 +46,7 @@ interface Enemy extends Body {
   phase: number;
   fireIn: number;
   formation?: boolean;
+  variant: number;
 }
 
 interface Pickup extends Body {
@@ -114,6 +122,8 @@ const pickupColors: Record<PickupKind, string> = {
   "RARE EARTHS": "#ffcf54",
   "VC FUNDING": "#8cff66",
   GPU: "#a996ff",
+  RAM: "#67f5c1",
+  WATER: "#59c9ff",
 };
 
 const satiricalLines = [
@@ -204,50 +214,117 @@ function drawPlane(ctx: CanvasRenderingContext2D, p: Body, shield: number) {
     ctx.lineWidth = 3;
     ctx.strokeRect(-9, -8, p.w + 18, p.h + 16);
   }
+  // Exhaust and twin engines.
   ctx.fillStyle = "#ff435f";
-  ctx.fillRect(31, 0, 10, 43);
-  ctx.fillStyle = "#f3f6e8";
-  ctx.fillRect(25, 12, 22, 28);
-  ctx.fillStyle = "#b8c2c8";
-  ctx.fillRect(29, 4, 14, 12);
-  ctx.fillStyle = "#171a26";
-  ctx.fillRect(0, 27, 72, 10);
-  ctx.fillRect(10, 20, 52, 8);
+  ctx.fillRect(13, 38, 10, 5);
+  ctx.fillRect(49, 38, 10, 5);
   ctx.fillStyle = "#ffcf54";
-  ctx.fillRect(4, 30, 64, 3);
-  ctx.fillStyle = "#8de8ff";
-  ctx.fillRect(29, 10, 14, 9);
+  ctx.fillRect(15, 43, 6, 4);
+  ctx.fillRect(51, 43, 6, 4);
   ctx.fillStyle = "#ff8b4d";
-  ctx.fillRect(28, 43, 16, 5);
+  ctx.fillRect(17, 47, 2, 3);
+  ctx.fillRect(53, 47, 2, 3);
+
+  // Wings, tail, and shaded fuselage.
+  ctx.fillStyle = "#151927";
+  ctx.fillRect(0, 25, 72, 12);
+  ctx.fillRect(8, 20, 56, 7);
+  ctx.fillStyle = "#343b50";
+  ctx.fillRect(5, 28, 62, 5);
+  ctx.fillStyle = "#ff435f";
+  ctx.fillRect(2, 33, 18, 4);
+  ctx.fillRect(52, 33, 18, 4);
+  ctx.fillRect(31, 0, 10, 44);
+  ctx.fillStyle = "#f3f6e8";
+  ctx.fillRect(27, 9, 18, 31);
+  ctx.fillRect(24, 18, 24, 17);
+  ctx.fillStyle = "#b8c2c8";
+  ctx.fillRect(29, 5, 14, 9);
+  ctx.fillRect(27, 35, 18, 5);
+  ctx.fillStyle = "#8de8ff";
+  ctx.fillRect(30, 10, 12, 8);
+  ctx.fillStyle = "#d8fbff";
+  ctx.fillRect(31, 11, 4, 3);
+  ctx.fillStyle = "#ffcf54";
+  ctx.fillRect(5, 29, 62, 3);
+  ctx.fillRect(34, 1, 4, 5);
+  ctx.fillStyle = "#05060c";
+  ctx.fillRect(18, 34, 8, 4);
+  ctx.fillRect(46, 34, 8, 4);
   ctx.fillStyle = "#fff";
-  ctx.font = '900 8px "Courier New", monospace';
+  ctx.font = '900 7px "Courier New", monospace';
   ctx.textAlign = "center";
-  ctx.fillText("BIG TECH", 36, 35);
+  ctx.fillText("BIG TECH", 36, 32);
   ctx.restore();
 }
 
 function drawWorker(ctx: CanvasRenderingContext2D, e: Enemy) {
-  const color = enemyStats[e.kind].color;
+  const skinTones = ["#f1c7a2", "#c9875d", "#8f573d", "#f4d7bd", "#b86f4c", "#6f4232"];
+  const hairColors = ["#291d1a", "#f1c45b", "#5a3528", "#141722", "#a64d2e", "#dad5cb"];
+  const shirtColors = ["#4f8cff", "#f06482", "#56b88b", "#d39b45", "#8e73dc", "#e7e9ed"];
+  const pantsColors = ["#27314a", "#312c3f", "#1d4251", "#443124", "#222632", "#30405a"];
+  const variant = e.variant % skinTones.length;
+  const skin = skinTones[variant];
+  const hair = hairColors[variant];
+  const roleColor =
+    e.kind === "ARTIST"
+      ? "#ff8ac7"
+      : e.kind === "JUNIOR"
+        ? "#479cff"
+        : e.kind === "SUPPORT"
+          ? "#ffe26e"
+          : shirtColors[variant];
+  const pants = pantsColors[variant];
   ctx.save();
   ctx.translate(Math.round(e.x), Math.round(e.y));
   const bob = Math.round(Math.sin(e.phase) * 2);
-  ctx.fillStyle = color;
-  ctx.fillRect(12, bob, 12, 12);
+
+  // A stepped, rounded head with distinct hair and facial features.
+  ctx.fillStyle = skin;
+  ctx.fillRect(11, bob + 1, 14, 2);
+  ctx.fillRect(8, bob + 3, 20, 10);
+  ctx.fillRect(11, bob + 13, 14, 3);
+  ctx.fillStyle = hair;
+  ctx.fillRect(9, bob + 1, 18, 4);
+  ctx.fillRect(8, bob + 4, variant % 2 === 0 ? 5 : 3, 5);
+  if (variant === 3) ctx.fillRect(25, bob + 3, 4, 8);
+  if (variant === 4) {
+    ctx.fillRect(6, bob + 4, 3, 10);
+    ctx.fillRect(27, bob + 4, 3, 10);
+  }
   ctx.fillStyle = "#171a26";
-  ctx.fillRect(14, bob + 3, 2, 2);
-  ctx.fillRect(20, bob + 3, 2, 2);
-  ctx.fillStyle = e.kind === "ARTIST" ? "#ff8ac7" : e.kind === "JUNIOR" ? "#479cff" : "#d9e1df";
-  ctx.fillRect(8, bob + 13, 20, 19);
+  ctx.fillRect(12, bob + 7, 2, 2);
+  ctx.fillRect(22, bob + 7, 2, 2);
+  ctx.fillStyle = "#a9544f";
+  ctx.fillRect(16, bob + 12, 5, 1);
+
+  // Neck, shirt, collar, and human-proportioned arms.
+  ctx.fillStyle = skin;
+  ctx.fillRect(15, bob + 15, 6, 4);
+  ctx.fillStyle = roleColor;
+  ctx.fillRect(8, bob + 18, 20, 16);
+  ctx.fillRect(5, bob + 20, 4, 13);
+  ctx.fillRect(28, bob + 20, 4, 13);
+  ctx.fillStyle = skin;
+  ctx.fillRect(4, bob + 31, 5, 4);
+  ctx.fillRect(28, bob + 31, 5, 4);
   ctx.fillStyle = "#f3f6e8";
-  ctx.fillRect(15, bob + 16, 6, 8);
-  ctx.fillStyle = color;
-  ctx.fillRect(3, bob + 15, 5, 18);
-  ctx.fillRect(28, bob + 15, 5, 18);
-  ctx.fillRect(9, bob + 32, 7, 11);
-  ctx.fillRect(21, bob + 32, 7, 11);
+  ctx.fillRect(14, bob + 18, 8, 3);
+  ctx.fillRect(17, bob + 21, 2, 7);
+  if (e.kind === "SUPPORT") {
+    ctx.fillStyle = "#171a26";
+    ctx.fillRect(7, bob + 4, 2, 7);
+    ctx.fillRect(27, bob + 4, 2, 7);
+    ctx.fillRect(27, bob + 10, 5, 2);
+  }
+
+  // Separated trousers and shoes remove the old robot silhouette.
+  ctx.fillStyle = pants;
+  ctx.fillRect(9, bob + 34, 8, 8);
+  ctx.fillRect(20, bob + 34, 8, 8);
   ctx.fillStyle = "#05060c";
-  ctx.fillRect(7, bob + 41, 9, 3);
-  ctx.fillRect(21, bob + 41, 9, 3);
+  ctx.fillRect(7, bob + 41, 10, 3);
+  ctx.fillRect(20, bob + 41, 10, 3);
   ctx.restore();
 }
 
@@ -260,9 +337,26 @@ function drawConcept(ctx: CanvasRenderingContext2D, e: Enemy) {
   ctx.fillStyle = "#05060c";
   ctx.fillRect(4, 10, e.w - 8, e.h - 20);
   ctx.strokeStyle = color;
-  ctx.lineWidth = 3;
+  ctx.lineWidth = 2;
   ctx.strokeRect(8, 0, e.w - 16, e.h);
-  pixelText(ctx, e.kind, e.w / 2, e.h / 2, e.kind === "REGULATION" ? 8 : 10, color, "center");
+  ctx.fillStyle = color;
+  if (e.kind === "REGULATION") {
+    ctx.fillRect(13, 11, 17, 4);
+    ctx.fillRect(25, 14, 5, 12);
+    ctx.fillRect(29, 24, 12, 4);
+  } else if (e.kind === "ETHICS") {
+    ctx.fillRect(24, 9, 3, 18);
+    ctx.fillRect(15, 12, 21, 3);
+    ctx.fillRect(14, 15, 3, 7);
+    ctx.fillRect(34, 15, 3, 7);
+    ctx.fillRect(10, 22, 11, 3);
+    ctx.fillRect(30, 22, 11, 3);
+  } else {
+    ctx.fillRect(13, 18, 24, 8);
+    ctx.fillRect(16, 12, 6, 8);
+    ctx.fillRect(22, 10, 6, 10);
+    ctx.fillRect(28, 13, 6, 7);
+  }
   ctx.restore();
 }
 
@@ -289,18 +383,103 @@ function drawPickup(ctx: CanvasRenderingContext2D, p: Pickup) {
   ctx.translate(Math.round(p.x + p.w / 2), Math.round(p.y + p.h / 2));
   const scale = 1 + Math.sin(p.spin) * 0.08;
   ctx.scale(scale, scale);
+  ctx.globalAlpha = 0.22;
   ctx.fillStyle = color;
-  ctx.fillRect(-18, -18, 36, 36);
-  ctx.fillStyle = "#05060c";
-  ctx.fillRect(-14, -14, 28, 28);
+  ctx.fillRect(-25, -25, 50, 50);
+  ctx.globalAlpha = 1;
   ctx.strokeStyle = color;
-  ctx.lineWidth = 3;
-  ctx.strokeRect(-10, -10, 20, 20);
-  const icon =
-    p.kind === "LAYOFFS" ? "✂" : p.kind === "VC FUNDING" ? "$" : p.kind === "GPU" ? "G" : p.kind === "SILICON" ? "Si" : "RE";
-  pixelText(ctx, icon, 0, 1, p.kind === "RARE EARTHS" ? 10 : 16, color, "center");
+  ctx.lineWidth = 2;
+  ctx.strokeRect(-22, -22, 44, 44);
+  ctx.fillStyle = color;
+  ctx.fillRect(-25, -25, 8, 3);
+  ctx.fillRect(17, -25, 8, 3);
+  ctx.fillRect(-25, 22, 8, 3);
+  ctx.fillRect(17, 22, 8, 3);
+
+  if (p.kind === "SILICON") {
+    ctx.fillStyle = "#173f37";
+    ctx.fillRect(-14, -14, 28, 28);
+    ctx.fillStyle = color;
+    for (let i = -12; i <= 8; i += 5) {
+      ctx.fillRect(i, -19, 3, 5);
+      ctx.fillRect(i, 14, 3, 5);
+      ctx.fillRect(-19, i, 5, 3);
+      ctx.fillRect(14, i, 5, 3);
+    }
+    ctx.strokeStyle = "#a8ffe3";
+    ctx.strokeRect(-9, -9, 18, 18);
+    pixelText(ctx, "Si", 0, 1, 12, "#a8ffe3", "center");
+  } else if (p.kind === "GPU") {
+    ctx.fillStyle = "#302550";
+    ctx.fillRect(-20, -13, 38, 26);
+    ctx.fillStyle = "#7160c9";
+    ctx.fillRect(-17, -10, 32, 20);
+    ctx.fillStyle = "#111521";
+    ctx.fillRect(-12, -7, 13, 14);
+    ctx.fillRect(3, -7, 10, 14);
+    ctx.fillStyle = "#a996ff";
+    ctx.fillRect(-9, -4, 7, 8);
+    ctx.fillRect(5, -4, 6, 8);
+    ctx.fillStyle = "#ffcf54";
+    for (let x = -14; x < 13; x += 5) ctx.fillRect(x, 13, 3, 5);
+    ctx.fillStyle = "#d9d3ff";
+    ctx.fillRect(18, -9, 3, 18);
+  } else if (p.kind === "RARE EARTHS") {
+    ctx.fillStyle = "#6c3f2c";
+    ctx.fillRect(-18, 8, 36, 10);
+    ctx.fillRect(-13, 2, 27, 8);
+    ctx.fillRect(-7, -4, 15, 7);
+    ctx.fillStyle = "#b86f42";
+    ctx.fillRect(-10, 3, 7, 5);
+    ctx.fillRect(5, 9, 9, 5);
+    ctx.fillStyle = "#ffcf54";
+    ctx.fillRect(-3, -15, 6, 14);
+    ctx.fillRect(-6, -10, 12, 5);
+    ctx.fillStyle = "#fff0a8";
+    ctx.fillRect(-1, -13, 2, 6);
+  } else if (p.kind === "RAM") {
+    ctx.fillStyle = "#174735";
+    ctx.fillRect(-20, -11, 40, 22);
+    ctx.fillStyle = "#59d9a5";
+    ctx.fillRect(-18, -9, 36, 17);
+    ctx.fillStyle = "#111521";
+    for (let x = -15; x < 14; x += 9) ctx.fillRect(x, -5, 7, 9);
+    ctx.fillStyle = "#ffcf54";
+    for (let x = -17; x < 18; x += 5) ctx.fillRect(x, 9, 3, 5);
+    ctx.fillStyle = "#d4fff0";
+    ctx.fillRect(-18, -9, 5, 2);
+  } else if (p.kind === "WATER") {
+    ctx.fillStyle = "#59c9ff";
+    ctx.fillRect(-4, -17, 8, 5);
+    ctx.fillRect(-8, -12, 16, 6);
+    ctx.fillRect(-12, -6, 24, 13);
+    ctx.fillRect(-8, 7, 16, 6);
+    ctx.fillRect(-4, 13, 8, 4);
+    ctx.fillStyle = "#d9f7ff";
+    ctx.fillRect(-6, -6, 5, 7);
+    ctx.fillStyle = "#2283bd";
+    ctx.fillRect(4, 4, 5, 5);
+  } else if (p.kind === "VC FUNDING") {
+    ctx.fillStyle = "#164428";
+    ctx.fillRect(-18, -12, 36, 24);
+    ctx.fillStyle = "#8cff66";
+    ctx.fillRect(-15, -9, 30, 18);
+    ctx.fillStyle = "#164428";
+    ctx.fillRect(-12, -6, 24, 12);
+    pixelText(ctx, "$", 0, 1, 17, "#8cff66", "center");
+  } else {
+    ctx.fillStyle = "#6e1e2c";
+    ctx.fillRect(-17, -13, 34, 27);
+    ctx.fillStyle = "#ff5364";
+    ctx.fillRect(-14, -10, 28, 20);
+    ctx.fillStyle = "#f3f6e8";
+    ctx.fillRect(-10, -6, 20, 13);
+    ctx.fillStyle = "#ff5364";
+    ctx.fillRect(-9, -5, 18, 2);
+    ctx.fillRect(-2, -3, 4, 7);
+  }
   ctx.restore();
-  pixelText(ctx, p.kind, p.x + p.w / 2, p.y + p.h + 11, 9, color, "center");
+  pixelText(ctx, p.kind, p.x + p.w / 2, p.y + p.h + 13, 9, color, "center");
 }
 
 function drawScene(ctx: CanvasRenderingContext2D, w: GameWorld) {
@@ -472,6 +651,7 @@ function spawnEnemy(w: GameWorld) {
     maxHp: stats.hp,
     phase: Math.random() * Math.PI * 2,
     fireIn: 0.8 + Math.random() * 2.8,
+    variant: Math.floor(Math.random() * 6),
   });
 }
 
@@ -501,6 +681,7 @@ function spawnLayoffFormation(w: GameWorld) {
         phase: sharedPhase,
         fireIn: 99,
         formation: true,
+        variant: (row * columns + column) % 6,
       });
     }
   }
@@ -513,13 +694,21 @@ function spawnLayoffFormation(w: GameWorld) {
 }
 
 function spawnPickup(w: GameWorld) {
-  const kinds: PickupKind[] = ["LAYOFFS", "SILICON", "RARE EARTHS", "VC FUNDING", "GPU"];
+  const kinds: PickupKind[] = [
+    "LAYOFFS",
+    "SILICON",
+    "RARE EARTHS",
+    "VC FUNDING",
+    "GPU",
+    "RAM",
+    "WATER",
+  ];
   const kind = kinds[Math.floor(Math.random() * kinds.length)];
   w.pickups.push({
     x: 45 + Math.random() * (WIDTH - 90),
     y: -70,
-    w: 42,
-    h: 42,
+    w: 50,
+    h: 50,
     vx: (Math.random() - 0.5) * 20,
     vy: 74,
     kind,
@@ -542,6 +731,7 @@ function spawnBoss(w: GameWorld) {
     maxHp: stats.hp,
     phase: 0,
     fireIn: 1,
+    variant: 0,
   });
   w.bossSpawned = true;
   w.banner = "FINAL REVIEW: REALITY";
@@ -578,11 +768,20 @@ function applyPickup(w: GameWorld, pickup: Pickup) {
   } else if (pickup.kind === "SILICON") {
     w.weaponLevel = Math.min(3, w.weaponLevel + 1);
     w.score += 500;
-    w.banner = "MORE COMPUTE, MORE MOAT";
+    w.banner = "SILICON CHIP: MORE COMPUTE";
+  } else if (pickup.kind === "RAM") {
+    w.rapidFire = 12;
+    w.score += 700;
+    w.banner = "RAM UPGRADE: CONTEXT +32GB";
+  } else if (pickup.kind === "WATER") {
+    w.health = clamp(w.health + 18, 0, MAX_HEALTH);
+    w.shield = Math.max(w.shield, 4);
+    w.score += 450;
+    w.banner = "DATA CENTER COOLING ONLINE";
   } else {
     w.shield = 9;
     w.score += 650;
-    w.banner = "SUPPLY CHAIN SECURED";
+    w.banner = "RARE EARTH SUPPLY SECURED";
   }
   w.bannerTime = 1.5;
 }
@@ -822,6 +1021,7 @@ export function ArmsRaceGame() {
   const audioRef = useRef<AudioContext | null>(null);
   const [screen, setScreen] = useState<Screen>("title");
   const [muted, setMuted] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const mutedRef = useRef(false);
   const [result, setResult] = useState({ score: 0, employees: 0, meetings: 0 });
 
@@ -867,6 +1067,21 @@ export function ArmsRaceGame() {
     });
   }, []);
 
+  const toggleExpanded = useCallback(() => {
+    setExpanded((current) => !current);
+  }, []);
+
+  const setVirtualKey = useCallback((key: string, active: boolean) => {
+    pointerRef.current.active = false;
+    if (active) keysRef.current.add(key);
+    else keysRef.current.delete(key);
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("game-expanded", expanded);
+    return () => document.documentElement.classList.remove("game-expanded");
+  }, [expanded]);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -884,8 +1099,13 @@ export function ArmsRaceGame() {
       if (key === "m") toggleMute();
     };
     const onKeyUp = (event: KeyboardEvent) => keysRef.current.delete(event.key.toLowerCase());
+    const onBlur = () => {
+      keysRef.current.clear();
+      pointerRef.current.active = false;
+    };
     window.addEventListener("keydown", onKeyDown, { passive: false });
     window.addEventListener("keyup", onKeyUp);
+    window.addEventListener("blur", onBlur);
 
     let last = performance.now();
     const frame = (now: number) => {
@@ -908,6 +1128,7 @@ export function ArmsRaceGame() {
     return () => {
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);
+      window.removeEventListener("blur", onBlur);
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
   }, [endGame, playSound, startGame, toggleMute]);
@@ -921,16 +1142,26 @@ export function ArmsRaceGame() {
   };
 
   return (
-    <main className="game-page">
+    <main className={`game-page${expanded ? " expanded" : ""}`}>
       <header className="topbar">
         <a className="brand" href="#" aria-label="AI Arms Race home">
           <span className="brand-mark" aria-hidden="true">▲</span>
           <span>AI ARMS RACE</span>
         </a>
         <p className="tagline">A SHAREHOLDER VALUE SIMULATOR</p>
-        <button className="icon-button" onClick={toggleMute} aria-label={muted ? "Turn sound on" : "Mute sound"}>
-          {muted ? "SOUND OFF" : "SOUND ON"}
-        </button>
+        <div className="header-actions">
+          <button className="icon-button" onClick={toggleMute} aria-label={muted ? "Turn sound on" : "Mute sound"}>
+            {muted ? "SOUND OFF" : "SOUND ON"}
+          </button>
+          <button
+            className="icon-button expand-button"
+            onClick={toggleExpanded}
+            aria-label={expanded ? "Exit expanded game view" : "Expand game view"}
+            aria-pressed={expanded}
+          >
+            {expanded ? "EXIT VIEW" : "EXPAND"}
+          </button>
+        </div>
       </header>
 
       <section className="game-shell" aria-label="AI Arms Race game">
@@ -944,8 +1175,9 @@ export function ArmsRaceGame() {
             width={WIDTH}
             height={HEIGHT}
             className="game-canvas"
-            aria-label="Arcade game area. Move with arrow keys or WASD. Firing is automatic."
+            aria-label="Arcade game area. Move with arrow keys, WASD, touch controls, or by dragging. Firing is automatic."
             onPointerDown={(event) => {
+              event.preventDefault();
               pointerRef.current.active = true;
               updatePointer(event.clientX, event.clientY);
               event.currentTarget.setPointerCapture(event.pointerId);
@@ -962,6 +1194,70 @@ export function ArmsRaceGame() {
           />
           <div className="scanlines" aria-hidden="true" />
           <div className="screen-glow" aria-hidden="true" />
+
+          {screen === "playing" && (
+            <>
+              <div className="mobile-controls" aria-label="Touch movement controls">
+                <button
+                  className="touch-key touch-up"
+                  aria-label="Move up"
+                  onPointerDown={(event) => {
+                    event.preventDefault();
+                    event.currentTarget.setPointerCapture(event.pointerId);
+                    setVirtualKey("arrowup", true);
+                  }}
+                  onPointerUp={() => setVirtualKey("arrowup", false)}
+                  onPointerCancel={() => setVirtualKey("arrowup", false)}
+                  onPointerLeave={() => setVirtualKey("arrowup", false)}
+                >
+                  ▲
+                </button>
+                <button
+                  className="touch-key touch-left"
+                  aria-label="Move left"
+                  onPointerDown={(event) => {
+                    event.preventDefault();
+                    event.currentTarget.setPointerCapture(event.pointerId);
+                    setVirtualKey("arrowleft", true);
+                  }}
+                  onPointerUp={() => setVirtualKey("arrowleft", false)}
+                  onPointerCancel={() => setVirtualKey("arrowleft", false)}
+                  onPointerLeave={() => setVirtualKey("arrowleft", false)}
+                >
+                  ◀
+                </button>
+                <button
+                  className="touch-key touch-down"
+                  aria-label="Move down"
+                  onPointerDown={(event) => {
+                    event.preventDefault();
+                    event.currentTarget.setPointerCapture(event.pointerId);
+                    setVirtualKey("arrowdown", true);
+                  }}
+                  onPointerUp={() => setVirtualKey("arrowdown", false)}
+                  onPointerCancel={() => setVirtualKey("arrowdown", false)}
+                  onPointerLeave={() => setVirtualKey("arrowdown", false)}
+                >
+                  ▼
+                </button>
+                <button
+                  className="touch-key touch-right"
+                  aria-label="Move right"
+                  onPointerDown={(event) => {
+                    event.preventDefault();
+                    event.currentTarget.setPointerCapture(event.pointerId);
+                    setVirtualKey("arrowright", true);
+                  }}
+                  onPointerUp={() => setVirtualKey("arrowright", false)}
+                  onPointerCancel={() => setVirtualKey("arrowright", false)}
+                  onPointerLeave={() => setVirtualKey("arrowright", false)}
+                >
+                  ▶
+                </button>
+              </div>
+              <p className="rotate-hint">ROTATE FOR A BIGGER VIEW • DRAG OR USE THE D-PAD</p>
+            </>
+          )}
 
           {screen === "title" && (
             <div className="overlay title-screen">
@@ -981,7 +1277,7 @@ export function ArmsRaceGame() {
               <div className="title-controls">
                 <span><kbd>WASD</kbd> / <kbd>ARROWS</kbd> MOVE</span>
                 <span><kbd>AUTO</kbd> FIRE</span>
-                <span><kbd>DRAG</kbd> TOUCH</span>
+                <span><kbd>DRAG</kbd> / <kbd>D-PAD</kbd> TOUCH</span>
               </div>
               <p className="disclaimer">THIS GAME IS SATIRE. THE INCENTIVES ARE REAL.</p>
             </div>
@@ -1031,7 +1327,7 @@ export function ArmsRaceGame() {
           <span>AGI RUMOR +8%</span>
           <span>REVENUE: NOT FOUND</span>
         </p>
-        <p>BUILD 0.1.0</p>
+        <p>BUILD 0.2.0</p>
       </footer>
     </main>
   );

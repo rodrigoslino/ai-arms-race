@@ -3,9 +3,9 @@
 A retro arcade satire about AI hype, layoffs, limitless funding, and the final
 boss: Reality.
 
-You play as Big Tech. Automate the workforce, collect GPUs, silicon, rare
-earths, and VC funding, then survive long enough to face the one thing no hype
-cycle can avoid.
+You play as Big Tech. Automate the workforce, collect GPUs, silicon, RAM,
+cooling water, rare earths, and VC funding, then survive long enough to face
+the one thing no hype cycle can avoid.
 
 > This game is satire. The incentives are real.
 
@@ -22,7 +22,8 @@ cycle can avoid.
 ## Play
 
 - Move with `WASD` or the arrow keys
-- Drag the aircraft on touch devices
+- On mobile, drag the aircraft or use the on-screen D-pad
+- Use `EXPAND` and rotate the phone for the largest mobile view
 - Firing is automatic
 - Collect resources and layoffs to increase shareholder confidence
 - Clear the 40-person mass-layoff formation
