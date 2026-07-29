@@ -22,8 +22,8 @@ the one thing no hype cycle can avoid.
 ## Play
 
 - Move with `WASD` or the arrow keys
-- On mobile, drag the aircraft or use the on-screen D-pad
-- Use `EXPAND` and rotate the phone for the largest mobile view
+- On mobile, drag the aircraft to move
+- Use `FULLSCREEN` and rotate the phone to fill the display
 - Firing is automatic
 - Collect resources and layoffs to increase shareholder confidence
 - Clear the 40-person mass-layoff formation

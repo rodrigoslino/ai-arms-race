@@ -1069,44 +1069,27 @@ export function ArmsRaceGame() {
   }, []);
 
   const toggleExpanded = useCallback(async () => {
-    if (document.fullscreenElement) {
-      await document.exitFullscreen();
+    if (expanded) {
+      if (document.fullscreenElement) await document.exitFullscreen();
       setExpanded(false);
       return;
     }
 
+    setExpanded(true);
     const gamePage = gamePageRef.current;
     if (gamePage?.requestFullscreen) {
       try {
         await gamePage.requestFullscreen();
-        setExpanded(true);
-        return;
       } catch {
         // iOS and embedded browsers may reject native fullscreen.
       }
     }
-
-    setExpanded((current) => !current);
-  }, []);
-
-  const setVirtualKey = useCallback((key: string, active: boolean) => {
-    pointerRef.current.active = false;
-    if (active) keysRef.current.add(key);
-    else keysRef.current.delete(key);
-  }, []);
+  }, [expanded]);
 
   useEffect(() => {
     document.documentElement.classList.toggle("game-expanded", expanded);
     return () => document.documentElement.classList.remove("game-expanded");
   }, [expanded]);
-
-  useEffect(() => {
-    const syncFullscreenState = () => {
-      if (!document.fullscreenElement) setExpanded(false);
-    };
-    document.addEventListener("fullscreenchange", syncFullscreenState);
-    return () => document.removeEventListener("fullscreenchange", syncFullscreenState);
-  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -1190,6 +1173,17 @@ export function ArmsRaceGame() {
         </div>
       </header>
 
+      {expanded && (
+        <button
+          className="fullscreen-exit"
+          onClick={toggleExpanded}
+          aria-label="Exit fullscreen game"
+          title="Exit fullscreen"
+        >
+          ×
+        </button>
+      )}
+
       <section className="game-shell" aria-label="AI Arms Race game">
         <div className="corner corner-tl" />
         <div className="corner corner-tr" />
@@ -1201,7 +1195,7 @@ export function ArmsRaceGame() {
             width={WIDTH}
             height={HEIGHT}
             className="game-canvas"
-            aria-label="Arcade game area. Move with arrow keys, WASD, touch controls, or by dragging. Firing is automatic."
+            aria-label="Arcade game area. Move with arrow keys, WASD, or by dragging. Firing is automatic."
             onPointerDown={(event) => {
               event.preventDefault();
               pointerRef.current.active = true;
@@ -1222,67 +1216,7 @@ export function ArmsRaceGame() {
           <div className="screen-glow" aria-hidden="true" />
 
           {screen === "playing" && (
-            <>
-              <div className="mobile-controls" aria-label="Touch movement controls">
-                <button
-                  className="touch-key touch-up"
-                  aria-label="Move up"
-                  onPointerDown={(event) => {
-                    event.preventDefault();
-                    event.currentTarget.setPointerCapture(event.pointerId);
-                    setVirtualKey("arrowup", true);
-                  }}
-                  onPointerUp={() => setVirtualKey("arrowup", false)}
-                  onPointerCancel={() => setVirtualKey("arrowup", false)}
-                  onPointerLeave={() => setVirtualKey("arrowup", false)}
-                >
-                  ▲
-                </button>
-                <button
-                  className="touch-key touch-left"
-                  aria-label="Move left"
-                  onPointerDown={(event) => {
-                    event.preventDefault();
-                    event.currentTarget.setPointerCapture(event.pointerId);
-                    setVirtualKey("arrowleft", true);
-                  }}
-                  onPointerUp={() => setVirtualKey("arrowleft", false)}
-                  onPointerCancel={() => setVirtualKey("arrowleft", false)}
-                  onPointerLeave={() => setVirtualKey("arrowleft", false)}
-                >
-                  ◀
-                </button>
-                <button
-                  className="touch-key touch-down"
-                  aria-label="Move down"
-                  onPointerDown={(event) => {
-                    event.preventDefault();
-                    event.currentTarget.setPointerCapture(event.pointerId);
-                    setVirtualKey("arrowdown", true);
-                  }}
-                  onPointerUp={() => setVirtualKey("arrowdown", false)}
-                  onPointerCancel={() => setVirtualKey("arrowdown", false)}
-                  onPointerLeave={() => setVirtualKey("arrowdown", false)}
-                >
-                  ▼
-                </button>
-                <button
-                  className="touch-key touch-right"
-                  aria-label="Move right"
-                  onPointerDown={(event) => {
-                    event.preventDefault();
-                    event.currentTarget.setPointerCapture(event.pointerId);
-                    setVirtualKey("arrowright", true);
-                  }}
-                  onPointerUp={() => setVirtualKey("arrowright", false)}
-                  onPointerCancel={() => setVirtualKey("arrowright", false)}
-                  onPointerLeave={() => setVirtualKey("arrowright", false)}
-                >
-                  ▶
-                </button>
-              </div>
-              <p className="rotate-hint">ROTATE FOR A BIGGER VIEW • DRAG OR USE THE D-PAD</p>
-            </>
+            <p className="rotate-hint">ROTATE FOR A BIGGER VIEW • DRAG TO MOVE</p>
           )}
 
           {screen === "title" && (
@@ -1303,7 +1237,7 @@ export function ArmsRaceGame() {
               <div className="title-controls">
                 <span><kbd>WASD</kbd> / <kbd>ARROWS</kbd> MOVE</span>
                 <span><kbd>AUTO</kbd> FIRE</span>
-                <span><kbd>DRAG</kbd> / <kbd>D-PAD</kbd> TOUCH</span>
+                <span><kbd>DRAG</kbd> TOUCH</span>
               </div>
               <p className="disclaimer">THIS GAME IS SATIRE. THE INCENTIVES ARE REAL.</p>
             </div>
@@ -1362,7 +1296,7 @@ export function ArmsRaceGame() {
           >
             SOURCE ↗
           </a>
-          <span>BUILD 0.2.0</span>
+          <span>BUILD 0.3.0</span>
         </p>
       </footer>
     </main>
