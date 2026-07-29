@@ -6,10 +6,17 @@ export const metadata: Metadata = {
   title: "AI Arms Race — A Shareholder Value Simulator",
   description:
     "A retro arcade satire about AI hype, layoffs, limitless funding, and the final boss: Reality.",
+  icons: {
+    icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
+    shortcut: "/favicon.svg",
+  },
   openGraph: {
     title: "AI Arms Race",
     description:
       "Automate the workforce, collect compute resources, and survive long enough to face Reality.",
+    url: "/",
+    siteName: "AI Arms Race",
+    type: "website",
     images: [
       {
         url: "/og-ai-arms-race.png",
