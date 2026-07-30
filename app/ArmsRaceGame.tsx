@@ -1362,7 +1362,6 @@ function updateWorld(
 }
 
 export function ArmsRaceGame() {
-  const gamePageRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const worldRef = useRef<GameWorld>(makeWorld());
   const screenRef = useRef<Screen>("title");
@@ -1372,7 +1371,6 @@ export function ArmsRaceGame() {
   const audioRef = useRef<AudioContext | null>(null);
   const [screen, setScreen] = useState<Screen>("title");
   const [muted, setMuted] = useState(false);
-  const [expanded, setExpanded] = useState(false);
   const mutedRef = useRef(false);
   const [result, setResult] = useState({ score: 0, employees: 0, meetings: 0 });
 
@@ -1417,29 +1415,6 @@ export function ArmsRaceGame() {
       return !current;
     });
   }, []);
-
-  const toggleExpanded = useCallback(async () => {
-    if (expanded) {
-      if (document.fullscreenElement) await document.exitFullscreen();
-      setExpanded(false);
-      return;
-    }
-
-    setExpanded(true);
-    const gamePage = gamePageRef.current;
-    if (gamePage?.requestFullscreen) {
-      try {
-        await gamePage.requestFullscreen();
-      } catch {
-        // iOS and embedded browsers may reject native fullscreen.
-      }
-    }
-  }, [expanded]);
-
-  useEffect(() => {
-    document.documentElement.classList.toggle("game-expanded", expanded);
-    return () => document.documentElement.classList.remove("game-expanded");
-  }, [expanded]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -1501,44 +1476,8 @@ export function ArmsRaceGame() {
   };
 
   return (
-    <main ref={gamePageRef} className={`game-page${expanded ? " expanded" : ""}`}>
-      <header className="topbar">
-        <a className="brand" href="#" aria-label="AI Arms Race home">
-          <span className="brand-mark" aria-hidden="true">▲</span>
-          <span>AI ARMS RACE</span>
-        </a>
-        <p className="tagline">A SHAREHOLDER VALUE SIMULATOR</p>
-        <div className="header-actions">
-          <button className="icon-button" onClick={toggleMute} aria-label={muted ? "Turn sound on" : "Mute sound"}>
-            {muted ? "SOUND OFF" : "SOUND ON"}
-          </button>
-          <button
-            className="icon-button expand-button"
-            onClick={toggleExpanded}
-            aria-label={expanded ? "Exit fullscreen game" : "Open game in fullscreen"}
-            aria-pressed={expanded}
-          >
-            {expanded ? "EXIT FULLSCREEN" : "FULLSCREEN"}
-          </button>
-        </div>
-      </header>
-
-      {expanded && (
-        <button
-          className="fullscreen-exit"
-          onClick={toggleExpanded}
-          aria-label="Exit fullscreen game"
-          title="Exit fullscreen"
-        >
-          ×
-        </button>
-      )}
-
+    <main className="game-page">
       <section className="game-shell" aria-label="AI Arms Race game">
-        <div className="corner corner-tl" />
-        <div className="corner corner-tr" />
-        <div className="corner corner-bl" />
-        <div className="corner corner-br" />
         <div className="canvas-wrap">
           <canvas
             ref={canvasRef}
@@ -1564,6 +1503,24 @@ export function ArmsRaceGame() {
           />
           <div className="scanlines" aria-hidden="true" />
           <div className="screen-glow" aria-hidden="true" />
+          <button
+            className="game-sound"
+            onClick={toggleMute}
+            aria-label={muted ? "Turn sound on" : "Mute sound"}
+          >
+            {muted ? "SOUND OFF" : "SOUND ON"}
+          </button>
+          <p className="source-meta game-source">
+            <a
+              href="https://github.com/rodrigoslino/ai-arms-race"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="View AI Arms Race source code on GitHub"
+            >
+              SOURCE ↗
+            </a>
+            <span>BUILD 0.6.0</span>
+          </p>
 
           {screen === "playing" && (
             <p className="rotate-hint">ROTATE FOR A BIGGER VIEW • DRAG TO MOVE</p>
@@ -1628,27 +1585,6 @@ export function ArmsRaceGame() {
           )}
         </div>
       </section>
-
-      <footer className="game-footer">
-        <p><span className="live-dot" /> CURRENT QUARTER: EXTREME OPTIMISM</p>
-        <p className="ticker">
-          <span>LAYOFFS +24% CONFIDENCE</span>
-          <span>GPU SHORTAGE</span>
-          <span>AGI RUMOR +8%</span>
-          <span>REVENUE: NOT FOUND</span>
-        </p>
-        <p className="source-meta">
-          <a
-            href="https://github.com/rodrigoslino/ai-arms-race"
-            target="_blank"
-            rel="noreferrer"
-            aria-label="View AI Arms Race source code on GitHub"
-          >
-            SOURCE ↗
-          </a>
-          <span>BUILD 0.5.1</span>
-        </p>
-      </footer>
     </main>
   );
 }

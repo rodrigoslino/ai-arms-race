@@ -29,9 +29,14 @@ test("server-renders the AI Arms Race game shell", async () => {
 
   const html = await response.text();
   assert.match(html, /<title>AI Arms Race/);
-  assert.match(html, /A SHAREHOLDER VALUE SIMULATOR/);
+  assert.match(html, /class="game-page"/);
   assert.match(html, /START DISRUPTING/);
   assert.match(html, /THIS GAME IS SATIRE\. THE INCENTIVES ARE REAL\./);
   assert.match(html, /Arcade game area/);
-  assert.doesNotMatch(html, /codex-preview|react-loading-skeleton/);
+  assert.match(html, /class="game-sound"/);
+  assert.match(html, /View AI Arms Race source code on GitHub/);
+  assert.doesNotMatch(
+    html,
+    /codex-preview|react-loading-skeleton|class="topbar"|fullscreen-exit|FULLSCREEN/,
+  );
 });
