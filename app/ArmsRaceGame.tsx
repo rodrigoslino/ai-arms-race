@@ -604,8 +604,8 @@ function drawBoss(ctx: CanvasRenderingContext2D, e: Enemy) {
   ctx.fillRect(173, 49, 14, 4);
   ctx.fillRect(175, 63, 10, 3);
 
-  // The oversized nameplate is intentionally simple so REALITY remains
-  // legible when the whole canvas is reduced on a phone.
+  // The simple nameplate keeps REALITY legible when the whole canvas is
+  // reduced on a phone.
   ctx.fillStyle = "#ffcf54";
   ctx.fillRect(63, 78, 234, 48);
   ctx.fillStyle = "#ff435f";
@@ -617,7 +617,7 @@ function drawBoss(ctx: CanvasRenderingContext2D, e: Enemy) {
   ctx.fillRect(282, 89, 4, 4);
   ctx.fillRect(74, 111, 4, 4);
   ctx.fillRect(282, 111, 4, 4);
-  pixelText(ctx, "REALITY", designWidth / 2, 102, 34, "#ff435f", "center");
+  pixelText(ctx, "REALITY", designWidth / 2, 102, 28, "#ff435f", "center");
 
   // Vents and warning stripes along the lower engine deck.
   ctx.fillStyle = "#ffcf54";
@@ -1705,7 +1705,7 @@ export function ArmsRaceGame() {
             >
               SOURCE ↗
             </a>
-            <span>BUILD 0.8.1</span>
+            <span>BUILD 0.8.2</span>
           </p>
 
           {screen === "playing" && (
