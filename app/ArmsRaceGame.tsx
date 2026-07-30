@@ -1575,7 +1575,7 @@ export function ArmsRaceGame() {
             >
               SOURCE ↗
             </a>
-            <span>BUILD 0.7.0</span>
+            <span>BUILD 0.7.1</span>
           </p>
 
           {screen === "playing" && (
@@ -1587,11 +1587,11 @@ export function ArmsRaceGame() {
               className={`gameplay-fullscreen${fullscreen ? " is-active" : ""}`}
               onClick={fullscreen ? exitFullscreen : enterFullscreen}
               aria-label={fullscreen ? "Exit fullscreen game" : "Open game in fullscreen"}
+              title={fullscreen ? "Exit fullscreen" : "Open fullscreen"}
             >
               <span className="fullscreen-icon" aria-hidden="true">
                 {fullscreen ? "×" : "⛶"}
               </span>
-              <span>{fullscreen ? "EXIT" : "FULLSCREEN"}</span>
             </button>
           )}
 
