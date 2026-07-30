@@ -320,6 +320,20 @@ function pixelText(
   ctx.restore();
 }
 
+function fittedPixelTextSize(text: string, preferredSize: number, maxWidth: number) {
+  let pixelSize = Math.max(1, Math.round(preferredSize / 7));
+
+  while (pixelSize > 1) {
+    const advance = pixelSize * 6;
+    const shadowOffset = Math.max(1, Math.round(pixelSize * 0.67));
+    const renderedWidth = Math.max(0, text.length * advance - pixelSize) + shadowOffset;
+    if (renderedWidth <= maxWidth) break;
+    pixelSize -= 1;
+  }
+
+  return pixelSize * 7;
+}
+
 function drawPlane(ctx: CanvasRenderingContext2D, p: Body, shield: number) {
   ctx.save();
   ctx.translate(Math.round(p.x), Math.round(p.y));
@@ -866,12 +880,13 @@ function drawScene(ctx: CanvasRenderingContext2D, w: GameWorld, screen: Screen) 
   }
 
   if (screen !== "title" && w.bannerTime > 0) {
+    const bannerTextSize = fittedPixelTextSize(w.banner, 26, 530);
     ctx.fillStyle = "rgba(5,6,12,.88)";
     ctx.fillRect(190, 252, 580, 72);
     ctx.strokeStyle = "#ffcf54";
     ctx.lineWidth = 3;
     ctx.strokeRect(195, 257, 570, 62);
-    pixelText(ctx, w.banner, WIDTH / 2, 288, w.banner.length > 28 ? 19 : 26, "#ffcf54", "center");
+    pixelText(ctx, w.banner, WIDTH / 2, 288, bannerTextSize, "#ffcf54", "center");
   }
 
   if (w.endSequence) {
@@ -1690,7 +1705,7 @@ export function ArmsRaceGame() {
             >
               SOURCE ↗
             </a>
-            <span>BUILD 0.8.0</span>
+            <span>BUILD 0.8.1</span>
           </p>
 
           {screen === "playing" && (
