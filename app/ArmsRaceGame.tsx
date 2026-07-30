@@ -131,7 +131,7 @@ const enemyStats: Record<
   REGULATION: { w: 52, h: 36, hp: 4, speed: 56, value: 320, color: "#ff5364" },
   ETHICS: { w: 50, h: 36, hp: 3, speed: 74, value: 280, color: "#a996ff" },
   UNION: { w: 50, h: 38, hp: 5, speed: 48, value: 420, color: "#ff8b4d" },
-  REALITY: { w: 260, h: 92, hp: 180, speed: 0, value: 10000, color: "#ff435f" },
+  REALITY: { w: 360, h: 176, hp: 180, speed: 0, value: 10000, color: "#ff435f" },
 };
 
 const pickupColors: Record<PickupKind, string> = {
@@ -387,19 +387,143 @@ function drawConcept(ctx: CanvasRenderingContext2D, e: Enemy) {
 }
 
 function drawBoss(ctx: CanvasRenderingContext2D, e: Enemy) {
+  const designWidth = 360;
+  const designHeight = 176;
+  const engineFlicker = Math.round((Math.sin(e.phase * 3.2) + 1) * 2);
+  const warningPulse = Math.sin(e.phase * 2.4) > 0;
+
   ctx.save();
   ctx.translate(Math.round(e.x), Math.round(e.y));
-  ctx.fillStyle = "#ff435f";
-  ctx.fillRect(0, 18, e.w, 58);
-  ctx.fillStyle = "#171a26";
-  ctx.fillRect(10, 8, e.w - 20, 76);
-  ctx.fillStyle = "#f3f6e8";
-  ctx.fillRect(22, 18, e.w - 44, 48);
+  ctx.scale(e.w / designWidth, e.h / designHeight);
+  ctx.imageSmoothingEnabled = false;
+
+  // Thirteen animated engines make the fortress feel heavier than every
+  // other ship in the game.
+  for (let i = 0; i < 13; i += 1) {
+    const x = 26 + i * 26;
+    const flameHeight = 10 + ((i + engineFlicker) % 3) * 3;
+    ctx.fillStyle = "#05060c";
+    ctx.fillRect(x, 137, 20, 22);
+    ctx.fillStyle = "#343b50";
+    ctx.fillRect(x + 3, 140, 14, 14);
+    ctx.fillStyle = "#ffcf54";
+    ctx.fillRect(x + 5, 145, 10, 9);
+    ctx.fillStyle = "#ff435f";
+    ctx.fillRect(x + 4, 154, 12, 5);
+    ctx.fillRect(x + 6, 159, 8, flameHeight);
+    ctx.fillStyle = "#f3f6e8";
+    ctx.fillRect(x + 8, 159, 4, Math.max(4, flameHeight - 5));
+  }
+
+  // Blocky stepped silhouette: command tower, armored decks, broad carrier
+  // hull, and side weapon platforms.
   ctx.fillStyle = "#05060c";
-  ctx.fillRect(32, 28, e.w - 64, 28);
-  pixelText(ctx, "REALITY", e.w / 2, 43, 25, "#ff435f", "center");
+  ctx.fillRect(142, 0, 76, 31);
+  ctx.fillRect(118, 18, 124, 35);
+  ctx.fillRect(88, 35, 184, 45);
+  ctx.fillRect(52, 55, 256, 61);
+  ctx.fillRect(18, 76, 324, 70);
+  ctx.fillRect(0, 98, 360, 38);
+
+  ctx.fillStyle = "#171a26";
+  ctx.fillRect(146, 4, 68, 27);
+  ctx.fillRect(122, 22, 116, 31);
+  ctx.fillRect(92, 39, 176, 41);
+  ctx.fillRect(56, 59, 248, 57);
+  ctx.fillRect(22, 80, 316, 66);
+  ctx.fillRect(4, 102, 352, 30);
+
+  // Layered armor bands.
+  ctx.fillStyle = "#343b50";
+  ctx.fillRect(152, 8, 56, 8);
+  ctx.fillRect(128, 27, 104, 8);
+  ctx.fillRect(98, 44, 164, 9);
+  ctx.fillRect(62, 64, 236, 10);
+  ctx.fillRect(28, 84, 304, 10);
+  ctx.fillRect(9, 106, 342, 9);
+  ctx.fillRect(28, 132, 304, 10);
+
+  // Command bridge and antenna array.
   ctx.fillStyle = "#ffcf54";
-  for (let i = 0; i < 7; i += 1) ctx.fillRect(14 + i * 38, 78, 18, 8);
+  ctx.fillRect(151, 1, 3, 8);
+  ctx.fillRect(179, 0, 3, 8);
+  ctx.fillRect(206, 1, 3, 8);
+  ctx.fillStyle = "#05060c";
+  ctx.fillRect(154, 11, 52, 13);
+  ctx.fillStyle = warningPulse ? "#ff435f" : "#9f2638";
+  for (let i = 0; i < 5; i += 1) ctx.fillRect(159 + i * 9, 14, 6, 6);
+
+  // Repeating armor plates create the dense industrial-carrier look from the
+  // selected concept without losing clarity at the in-game size.
+  const armorColumns = [32, 66, 100, 226, 260, 294];
+  for (const x of armorColumns) {
+    ctx.fillStyle = "#05060c";
+    ctx.fillRect(x, 96, 26, 31);
+    ctx.fillStyle = "#2b3046";
+    ctx.fillRect(x + 3, 99, 20, 25);
+    ctx.fillStyle = "#ffcf54";
+    ctx.fillRect(x + 7, 103, 3, 13);
+    ctx.fillRect(x + 10, 113, 8, 3);
+    ctx.fillStyle = warningPulse ? "#ff435f" : "#6e202e";
+    ctx.fillRect(x + 15, 103, 5, 4);
+  }
+
+  // Symmetrical gun decks and side cannons.
+  for (const side of [-1, 1]) {
+    const innerX = side < 0 ? 65 : 271;
+    const outerX = side < 0 ? 9 : 327;
+    ctx.fillStyle = "#05060c";
+    ctx.fillRect(innerX, 58, 24, 25);
+    ctx.fillRect(outerX, 88, 24, 27);
+    ctx.fillStyle = "#3d455c";
+    ctx.fillRect(innerX + 4, 62, 16, 17);
+    ctx.fillRect(outerX + 4, 92, 16, 19);
+    ctx.fillStyle = "#ffcf54";
+    ctx.fillRect(innerX + 7, 55, 4, 9);
+    ctx.fillRect(innerX + 14, 55, 4, 9);
+    ctx.fillStyle = "#ff435f";
+    ctx.fillRect(innerX + 6, 68, 12, 5);
+    ctx.fillRect(outerX + 6, 99, 12, 5);
+    ctx.fillStyle = "#05060c";
+    ctx.fillRect(side < 0 ? 0 : 351, 96, 9, 6);
+    ctx.fillRect(side < 0 ? 0 : 351, 108, 9, 6);
+    ctx.fillStyle = "#a996ff";
+    ctx.fillRect(side < 0 ? 0 : 356, 98, 4, 3);
+    ctx.fillRect(side < 0 ? 0 : 356, 110, 4, 3);
+  }
+
+  // Central armored spine and gold corporate insignia.
+  ctx.fillStyle = "#05060c";
+  ctx.fillRect(161, 34, 38, 42);
+  ctx.fillStyle = "#454d65";
+  ctx.fillRect(166, 39, 28, 32);
+  ctx.fillStyle = "#ffcf54";
+  ctx.fillRect(178, 45, 4, 18);
+  ctx.fillRect(173, 49, 14, 4);
+  ctx.fillRect(175, 63, 10, 3);
+
+  // The oversized nameplate is intentionally simple so REALITY remains
+  // legible when the whole canvas is reduced on a phone.
+  ctx.fillStyle = "#ffcf54";
+  ctx.fillRect(63, 78, 234, 48);
+  ctx.fillStyle = "#ff435f";
+  ctx.fillRect(67, 82, 226, 40);
+  ctx.fillStyle = "#05060c";
+  ctx.fillRect(71, 86, 218, 32);
+  ctx.fillStyle = warningPulse ? "#ff435f" : "#a52b3d";
+  ctx.fillRect(74, 89, 4, 4);
+  ctx.fillRect(282, 89, 4, 4);
+  ctx.fillRect(74, 111, 4, 4);
+  ctx.fillRect(282, 111, 4, 4);
+  pixelText(ctx, "REALITY", designWidth / 2, 102, 34, "#ff435f", "center");
+
+  // Vents and warning stripes along the lower engine deck.
+  ctx.fillStyle = "#ffcf54";
+  for (let i = 0; i < 9; i += 1) {
+    ctx.fillRect(40 + i * 35, 130, 19, 3);
+    ctx.fillRect(40 + i * 35, 134, 10, 3);
+  }
+
   ctx.restore();
 }
 
@@ -901,11 +1025,11 @@ function spawnBoss(w: GameWorld) {
   w.enemies = w.enemies.filter((enemy) => enemy.kind === "REALITY");
   w.enemies.push({
     x: WIDTH / 2 - stats.w / 2,
-    y: -120,
+    y: -190,
     w: stats.w,
     h: stats.h,
     vx: 90,
-    vy: 42,
+    vy: 60,
     kind: "REALITY",
     hp: stats.hp,
     maxHp: stats.hp,
@@ -1482,7 +1606,7 @@ export function ArmsRaceGame() {
           >
             SOURCE ↗
           </a>
-          <span>BUILD 0.4.0</span>
+          <span>BUILD 0.5.0</span>
         </p>
       </footer>
     </main>
