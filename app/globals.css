@@ -83,6 +83,7 @@ button {
   height: 100%;
   display: block;
   image-rendering: pixelated;
+  image-rendering: crisp-edges;
   touch-action: none;
   cursor: crosshair;
 }

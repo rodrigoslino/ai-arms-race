@@ -6,6 +6,64 @@ const WIDTH = 960;
 const HEIGHT = 600;
 const MAX_HEALTH = 100;
 
+const PIXEL_GLYPHS: Record<string, readonly number[]> = {
+  " ": [0, 0, 0, 0, 0, 0, 0],
+  A: [14, 17, 17, 31, 17, 17, 17],
+  B: [30, 17, 17, 30, 17, 17, 30],
+  C: [14, 17, 16, 16, 16, 17, 14],
+  D: [30, 17, 17, 17, 17, 17, 30],
+  E: [31, 16, 16, 30, 16, 16, 31],
+  F: [31, 16, 16, 30, 16, 16, 16],
+  G: [14, 17, 16, 23, 17, 17, 14],
+  H: [17, 17, 17, 31, 17, 17, 17],
+  I: [31, 4, 4, 4, 4, 4, 31],
+  J: [7, 2, 2, 2, 18, 18, 12],
+  K: [17, 18, 20, 24, 20, 18, 17],
+  L: [16, 16, 16, 16, 16, 16, 31],
+  M: [17, 27, 21, 21, 17, 17, 17],
+  N: [17, 25, 21, 19, 17, 17, 17],
+  O: [14, 17, 17, 17, 17, 17, 14],
+  P: [30, 17, 17, 30, 16, 16, 16],
+  Q: [14, 17, 17, 17, 21, 18, 13],
+  R: [30, 17, 17, 30, 20, 18, 17],
+  S: [15, 16, 16, 14, 1, 1, 30],
+  T: [31, 4, 4, 4, 4, 4, 4],
+  U: [17, 17, 17, 17, 17, 17, 14],
+  V: [17, 17, 17, 17, 17, 10, 4],
+  W: [17, 17, 17, 21, 21, 21, 10],
+  X: [17, 17, 10, 4, 10, 17, 17],
+  Y: [17, 17, 10, 4, 4, 4, 4],
+  Z: [31, 1, 2, 4, 8, 16, 31],
+  "0": [14, 17, 19, 21, 25, 17, 14],
+  "1": [4, 12, 4, 4, 4, 4, 14],
+  "2": [14, 17, 1, 2, 4, 8, 31],
+  "3": [30, 1, 1, 14, 1, 1, 30],
+  "4": [2, 6, 10, 18, 31, 2, 2],
+  "5": [31, 16, 16, 30, 1, 1, 30],
+  "6": [14, 16, 16, 30, 17, 17, 14],
+  "7": [31, 1, 2, 4, 8, 8, 8],
+  "8": [14, 17, 17, 14, 17, 17, 14],
+  "9": [14, 17, 17, 15, 1, 1, 14],
+  ".": [0, 0, 0, 0, 0, 12, 12],
+  ",": [0, 0, 0, 0, 4, 4, 8],
+  ":": [0, 4, 4, 0, 4, 4, 0],
+  "/": [1, 2, 2, 4, 8, 8, 16],
+  "$": [4, 15, 20, 14, 5, 30, 4],
+  "%": [17, 2, 4, 4, 8, 16, 17],
+  "-": [0, 0, 0, 31, 0, 0, 0],
+  "+": [0, 4, 4, 31, 4, 4, 0],
+  "!": [4, 4, 4, 4, 4, 0, 4],
+  "?": [14, 17, 1, 2, 4, 0, 4],
+  "'": [4, 4, 8, 0, 0, 0, 0],
+  "(": [2, 4, 8, 8, 8, 4, 2],
+  ")": [8, 4, 2, 2, 2, 4, 8],
+  "#": [10, 31, 10, 10, 31, 10, 0],
+  "=": [0, 31, 0, 31, 0, 0, 0],
+  _: [0, 0, 0, 0, 0, 0, 31],
+  "↓": [4, 4, 4, 4, 21, 14, 4],
+  "↑": [4, 14, 21, 4, 4, 4, 4],
+};
+
 type Screen = "title" | "playing" | "gameover" | "victory";
 type EnemyKind =
   | "EMPLOYEE"
@@ -223,14 +281,42 @@ function pixelText(
   color = "#fff",
   align: CanvasTextAlign = "left",
 ) {
+  const normalizedText = text.toUpperCase();
+  const pixelSize = Math.max(1, Math.round(size / 7));
+  const advance = pixelSize * 6;
+  const textWidth = Math.max(0, normalizedText.length * advance - pixelSize);
+  const startX =
+    align === "center"
+      ? Math.round(x - textWidth / 2)
+      : align === "right" || align === "end"
+        ? Math.round(x - textWidth)
+        : Math.round(x);
+  const startY = Math.round(y - (pixelSize * 7) / 2);
+  const shadowOffset = Math.max(1, Math.round(pixelSize * 0.67));
+
+  const drawLayer = (layerColor: string, offset: number) => {
+    ctx.fillStyle = layerColor;
+    for (let charIndex = 0; charIndex < normalizedText.length; charIndex += 1) {
+      const glyph = PIXEL_GLYPHS[normalizedText[charIndex]] ?? PIXEL_GLYPHS["?"];
+      const glyphX = startX + charIndex * advance + offset;
+      for (let row = 0; row < 7; row += 1) {
+        const bits = glyph[row];
+        for (let column = 0; column < 5; column += 1) {
+          if ((bits & (1 << (4 - column))) === 0) continue;
+          ctx.fillRect(
+            glyphX + column * pixelSize,
+            startY + row * pixelSize + offset,
+            pixelSize,
+            pixelSize,
+          );
+        }
+      }
+    }
+  };
+
   ctx.save();
-  ctx.font = `900 ${size}px "Courier New", monospace`;
-  ctx.textAlign = align;
-  ctx.textBaseline = "middle";
-  ctx.fillStyle = "#05060c";
-  ctx.fillText(text, x + 2, y + 2);
-  ctx.fillStyle = color;
-  ctx.fillText(text, x, y);
+  drawLayer("#05060c", shadowOffset);
+  drawLayer(color, 0);
   ctx.restore();
 }
 
@@ -634,7 +720,7 @@ function drawPickup(ctx: CanvasRenderingContext2D, p: Pickup) {
   pixelText(ctx, p.kind, p.x + p.w / 2, p.y + p.h + 13, 9, color, "center");
 }
 
-function drawScene(ctx: CanvasRenderingContext2D, w: GameWorld) {
+function drawScene(ctx: CanvasRenderingContext2D, w: GameWorld, screen: Screen) {
   ctx.clearRect(0, 0, WIDTH, HEIGHT);
   ctx.fillStyle = "#05060c";
   ctx.fillRect(0, 0, WIDTH, HEIGHT);
@@ -779,7 +865,7 @@ function drawScene(ctx: CanvasRenderingContext2D, w: GameWorld) {
     );
   }
 
-  if (w.bannerTime > 0) {
+  if (screen !== "title" && w.bannerTime > 0) {
     ctx.fillStyle = "rgba(5,6,12,.88)";
     ctx.fillRect(190, 252, 580, 72);
     ctx.strokeStyle = "#ffcf54";
@@ -1473,9 +1559,33 @@ export function ArmsRaceGame() {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    ctx.imageSmoothingEnabled = false;
+    const outputCtx = canvas.getContext("2d", { alpha: false });
+    if (!outputCtx) return;
+
+    const sceneCanvas = document.createElement("canvas");
+    sceneCanvas.width = WIDTH;
+    sceneCanvas.height = HEIGHT;
+    const sceneCtx = sceneCanvas.getContext("2d", { alpha: false });
+    if (!sceneCtx) return;
+    sceneCtx.imageSmoothingEnabled = false;
+
+    const syncCanvasResolution = () => {
+      const rect = canvas.getBoundingClientRect();
+      const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+      const nextWidth = Math.max(1, Math.round(rect.width * pixelRatio));
+      const nextHeight = Math.max(1, Math.round(rect.height * pixelRatio));
+
+      if (canvas.width !== nextWidth || canvas.height !== nextHeight) {
+        canvas.width = nextWidth;
+        canvas.height = nextHeight;
+        outputCtx.imageSmoothingEnabled = false;
+      }
+    };
+
+    syncCanvasResolution();
+    const resizeObserver = new ResizeObserver(syncCanvasResolution);
+    resizeObserver.observe(canvas);
+    window.addEventListener("resize", syncCanvasResolution);
 
     const onKeyDown = (event: KeyboardEvent) => {
       const key = event.key.toLowerCase();
@@ -1508,7 +1618,10 @@ export function ArmsRaceGame() {
           if (star.y > HEIGHT) star.y = 0;
         }
       }
-      drawScene(ctx, world);
+      drawScene(sceneCtx, world, screenRef.current);
+      outputCtx.imageSmoothingEnabled = false;
+      outputCtx.clearRect(0, 0, canvas.width, canvas.height);
+      outputCtx.drawImage(sceneCanvas, 0, 0, canvas.width, canvas.height);
       animationRef.current = requestAnimationFrame(frame);
     };
     animationRef.current = requestAnimationFrame(frame);
@@ -1517,6 +1630,8 @@ export function ArmsRaceGame() {
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);
       window.removeEventListener("blur", onBlur);
+      window.removeEventListener("resize", syncCanvasResolution);
+      resizeObserver.disconnect();
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
   }, [endGame, playSound, startGame, toggleMute]);
@@ -1575,7 +1690,7 @@ export function ArmsRaceGame() {
             >
               SOURCE ↗
             </a>
-            <span>BUILD 0.7.2</span>
+            <span>BUILD 0.8.0</span>
           </p>
 
           {screen === "playing" && (
