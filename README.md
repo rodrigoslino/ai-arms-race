@@ -27,7 +27,7 @@ the one thing no hype cycle can avoid.
 - Firing is automatic
 - Collect resources and layoffs to increase shareholder confidence
 - Clear the 40-person mass-layoff formation
-- Defeat Reality
+- Defeat Reality and survive the final explosion
 
 ## Run locally
 

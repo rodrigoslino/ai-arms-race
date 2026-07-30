@@ -73,6 +73,16 @@ interface FloatText {
   life: number;
 }
 
+interface Shockwave {
+  x: number;
+  y: number;
+  radius: number;
+  speed: number;
+  life: number;
+  maxLife: number;
+  color: string;
+}
+
 interface GameWorld {
   player: Body;
   bullets: Bullet[];
@@ -81,6 +91,7 @@ interface GameWorld {
   pickups: Pickup[];
   particles: Particle[];
   texts: FloatText[];
+  shockwaves: Shockwave[];
   stars: Array<{ x: number; y: number; speed: number; size: number }>;
   score: number;
   health: number;
@@ -100,6 +111,13 @@ interface GameWorld {
   shake: number;
   banner: string;
   bannerTime: number;
+  endSequence: "victory" | "gameover" | null;
+  endSequenceTime: number;
+  endSequenceDuration: number;
+  endSequencePulse: number;
+  endSequenceBeat: number;
+  endSequenceX: number;
+  endSequenceY: number;
 }
 
 const enemyStats: Record<
@@ -151,6 +169,7 @@ function makeWorld(): GameWorld {
     pickups: [],
     particles: [],
     texts: [],
+    shockwaves: [],
     stars: Array.from({ length: 90 }, () => ({
       x: Math.random() * WIDTH,
       y: Math.random() * HEIGHT,
@@ -175,6 +194,13 @@ function makeWorld(): GameWorld {
     shake: 0,
     banner: "Q3 GROWTH INITIATIVE",
     bannerTime: 2.4,
+    endSequence: null,
+    endSequenceTime: 0,
+    endSequenceDuration: 0,
+    endSequencePulse: 0,
+    endSequenceBeat: 0,
+    endSequenceX: WIDTH / 2,
+    endSequenceY: HEIGHT / 2,
   };
 }
 
@@ -539,7 +565,31 @@ function drawScene(ctx: CanvasRenderingContext2D, w: GameWorld) {
     ctx.fillStyle = "#ff435f";
   }
 
-  drawPlane(ctx, w.player, w.shield);
+  if (w.endSequence !== "gameover") drawPlane(ctx, w.player, w.shield);
+
+  for (const wave of w.shockwaves) {
+    const alpha = clamp(wave.life / wave.maxLife, 0, 1);
+    const radius = Math.round(wave.radius);
+    ctx.globalAlpha = alpha;
+    ctx.strokeStyle = wave.color;
+    ctx.lineWidth = Math.max(2, Math.round(alpha * 7));
+    ctx.strokeRect(
+      Math.round(wave.x - radius),
+      Math.round(wave.y - radius),
+      radius * 2,
+      radius * 2,
+    );
+    if (radius > 18) {
+      ctx.globalAlpha = alpha * 0.45;
+      ctx.strokeRect(
+        Math.round(wave.x - radius * 0.72),
+        Math.round(wave.y - radius * 0.72),
+        Math.round(radius * 1.44),
+        Math.round(radius * 1.44),
+      );
+    }
+  }
+  ctx.globalAlpha = 1;
 
   for (const p of w.particles) {
     ctx.globalAlpha = p.life / p.maxLife;
@@ -611,6 +661,30 @@ function drawScene(ctx: CanvasRenderingContext2D, w: GameWorld) {
     ctx.strokeRect(195, 257, 570, 62);
     pixelText(ctx, w.banner, WIDTH / 2, 288, w.banner.length > 28 ? 19 : 26, "#ffcf54", "center");
   }
+
+  if (w.endSequence) {
+    const elapsed = w.endSequenceDuration - w.endSequenceTime;
+    const openingFlash = clamp(1 - elapsed / 0.22, 0, 1);
+    const closingFade = w.endSequenceTime < 0.5 ? 1 - w.endSequenceTime / 0.5 : 0;
+    const flashColor = w.endSequence === "victory" ? "255, 244, 176" : "255, 67, 95";
+    ctx.fillStyle = `rgba(${flashColor}, ${openingFlash * 0.42})`;
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    if (closingFade > 0) {
+      ctx.fillStyle = `rgba(5, 6, 12, ${closingFade * 0.86})`;
+      ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    }
+    if (elapsed > 1.05 && w.endSequenceTime > 0.55) {
+      pixelText(
+        ctx,
+        w.endSequence === "victory" ? "REALITY: OFFLINE" : "AIRCRAFT: WRITTEN OFF",
+        WIDTH / 2,
+        390,
+        23,
+        w.endSequence === "victory" ? "#67f5c1" : "#ff435f",
+        "center",
+      );
+    }
+  }
 }
 
 function burst(w: GameWorld, x: number, y: number, color: string, amount = 14) {
@@ -627,6 +701,112 @@ function burst(w: GameWorld, x: number, y: number, color: string, amount = 14) {
       color,
     });
   }
+}
+
+function addShockwave(
+  w: GameWorld,
+  x: number,
+  y: number,
+  color: string,
+  speed = 180,
+  life = 0.9,
+) {
+  w.shockwaves.push({
+    x,
+    y,
+    radius: 8,
+    speed,
+    life,
+    maxLife: life,
+    color,
+  });
+}
+
+function updateEffects(w: GameWorld, dt: number) {
+  for (const particle of w.particles) {
+    particle.x += particle.vx * dt;
+    particle.y += particle.vy * dt;
+    particle.vy += 70 * dt;
+    particle.life -= dt;
+  }
+  for (const text of w.texts) {
+    text.y -= 30 * dt;
+    text.life -= dt;
+  }
+  for (const wave of w.shockwaves) {
+    wave.radius += wave.speed * dt;
+    wave.life -= dt;
+  }
+  w.particles = w.particles.filter((particle) => particle.life > 0);
+  w.texts = w.texts.filter((text) => text.life > 0);
+  w.shockwaves = w.shockwaves.filter((wave) => wave.life > 0);
+}
+
+function startEndSequence(
+  w: GameWorld,
+  kind: "victory" | "gameover",
+  x: number,
+  y: number,
+) {
+  if (w.endSequence) return;
+  const duration = kind === "victory" ? 3.6 : 2.7;
+  w.endSequence = kind;
+  w.endSequenceTime = duration;
+  w.endSequenceDuration = duration;
+  w.endSequencePulse = 0;
+  w.endSequenceBeat = 0;
+  w.endSequenceX = x;
+  w.endSequenceY = y;
+  w.enemyBullets = [];
+  w.bullets = [];
+  w.pickups = [];
+  w.banner = kind === "victory" ? "REALITY IS COLLAPSING" : "CATASTROPHIC BURN RATE";
+  w.bannerTime = duration - 0.35;
+  w.shake = 1.4;
+  burst(w, x, y, kind === "victory" ? "#ffcf54" : "#ff435f", kind === "victory" ? 110 : 80);
+  burst(w, x, y, "#f3f6e8", kind === "victory" ? 55 : 35);
+  addShockwave(w, x, y, kind === "victory" ? "#ffcf54" : "#ff435f", 210, 1.15);
+}
+
+function updateEndSequence(
+  w: GameWorld,
+  dt: number,
+  endGame: (screen: Screen) => void,
+  playSound: (frequency: number, duration?: number, volume?: number) => void,
+) {
+  if (!w.endSequence) return;
+  w.endSequenceTime = Math.max(0, w.endSequenceTime - dt);
+  w.endSequencePulse -= dt;
+  w.endSequenceBeat -= dt;
+  const victory = w.endSequence === "victory";
+  const progress = 1 - w.endSequenceTime / w.endSequenceDuration;
+
+  if (w.endSequencePulse <= 0 && w.endSequenceTime > 0.42) {
+    const spreadX = victory ? 125 : 48;
+    const spreadY = victory ? 52 : 34;
+    const x = w.endSequenceX + (Math.random() - 0.5) * spreadX * 2;
+    const y = w.endSequenceY + (Math.random() - 0.5) * spreadY * 2;
+    const colors = victory
+      ? ["#ff435f", "#ffcf54", "#f3f6e8", "#a996ff"]
+      : ["#ff435f", "#ff8b4d", "#ffcf54", "#f3f6e8"];
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    burst(w, x, y, color, victory ? 28 : 20);
+    if (Math.random() > 0.45) addShockwave(w, x, y, color, victory ? 150 : 120, 0.55);
+    w.shake = Math.max(w.shake, victory ? 0.85 : 1.05);
+    playSound(victory ? 78 + Math.random() * 52 : 58 + Math.random() * 40, 0.09, 0.035);
+    w.endSequencePulse = victory ? Math.max(0.1, 0.2 - progress * 0.08) : 0.13;
+  }
+
+  if (w.endSequenceBeat <= 0 && w.endSequenceTime > 0.55) {
+    const color = victory ? (progress > 0.58 ? "#67f5c1" : "#ffcf54") : "#ff435f";
+    addShockwave(w, w.endSequenceX, w.endSequenceY, color, victory ? 235 : 170, 0.95);
+    w.shake = Math.max(w.shake, 1.15);
+    playSound(victory ? 92 : 54, 0.18, 0.05);
+    w.endSequenceBeat = victory ? 0.52 : 0.38;
+  }
+
+  updateEffects(w, dt);
+  if (w.endSequenceTime <= 0) endGame(w.endSequence);
 }
 
 function spawnEnemy(w: GameWorld) {
@@ -795,11 +975,6 @@ function updateWorld(
   playSound: (frequency: number, duration?: number, volume?: number) => void,
 ) {
   w.elapsed += dt;
-  w.spawnIn -= dt;
-  w.pickupIn -= dt;
-  w.shotIn -= dt;
-  w.rapidFire = Math.max(0, w.rapidFire - dt);
-  w.shield = Math.max(0, w.shield - dt);
   w.shake = Math.max(0, w.shake - dt);
   w.bannerTime = Math.max(0, w.bannerTime - dt);
 
@@ -810,6 +985,17 @@ function updateWorld(
       star.x = Math.random() * WIDTH;
     }
   }
+
+  if (w.endSequence) {
+    updateEndSequence(w, dt, endGame, playSound);
+    return;
+  }
+
+  w.spawnIn -= dt;
+  w.pickupIn -= dt;
+  w.shotIn -= dt;
+  w.rapidFire = Math.max(0, w.rapidFire - dt);
+  w.shield = Math.max(0, w.shield - dt);
 
   const p = w.player;
   let dx = 0;
@@ -939,7 +1125,12 @@ function updateWorld(
           w.bossDefeated = true;
           w.meetings = 12 + Math.floor(w.employees / 4);
           playSound(110, 0.5, 0.08);
-          endGame("victory");
+          startEndSequence(
+            w,
+            "victory",
+            enemy.x + enemy.w / 2,
+            enemy.y + enemy.h / 2,
+          );
         }
         w.enemies.splice(ei, 1);
         playSound(enemy.kind === "REALITY" ? 95 : 120, enemy.kind === "REALITY" ? 0.5 : 0.06, 0.035);
@@ -988,26 +1179,21 @@ function updateWorld(
     } else if (pickup.y > HEIGHT + 80) w.pickups.splice(i, 1);
   }
 
-  for (const particle of w.particles) {
-    particle.x += particle.vx * dt;
-    particle.y += particle.vy * dt;
-    particle.vy += 70 * dt;
-    particle.life -= dt;
-  }
-  for (const text of w.texts) {
-    text.y -= 30 * dt;
-    text.life -= dt;
-  }
+  updateEffects(w, dt);
 
   w.bullets = w.bullets.filter((b) => b.y > -40 && b.x > -40 && b.x < WIDTH + 40);
   w.enemyBullets = w.enemyBullets.filter((b) => b.y < HEIGHT + 40 && b.x > -40 && b.x < WIDTH + 40);
-  w.particles = w.particles.filter((particle) => particle.life > 0);
-  w.texts = w.texts.filter((text) => text.life > 0);
 
-  if (w.health <= 0) {
+  if (w.health <= 0 && !w.endSequence) {
     w.health = 0;
     w.meetings = 8 + Math.floor(w.employees / 3);
-    endGame("gameover");
+    playSound(48, 0.45, 0.08);
+    startEndSequence(
+      w,
+      "gameover",
+      w.player.x + w.player.w / 2,
+      w.player.y + w.player.h / 2,
+    );
   }
 }
 
@@ -1296,7 +1482,7 @@ export function ArmsRaceGame() {
           >
             SOURCE ↗
           </a>
-          <span>BUILD 0.3.0</span>
+          <span>BUILD 0.4.0</span>
         </p>
       </footer>
     </main>
