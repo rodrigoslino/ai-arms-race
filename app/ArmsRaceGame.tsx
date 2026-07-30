@@ -1362,6 +1362,7 @@ function updateWorld(
 }
 
 export function ArmsRaceGame() {
+  const gamePageRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const worldRef = useRef<GameWorld>(makeWorld());
   const screenRef = useRef<Screen>("title");
@@ -1371,6 +1372,7 @@ export function ArmsRaceGame() {
   const audioRef = useRef<AudioContext | null>(null);
   const [screen, setScreen] = useState<Screen>("title");
   const [muted, setMuted] = useState(false);
+  const [fullscreen, setFullscreen] = useState(false);
   const mutedRef = useRef(false);
   const [result, setResult] = useState({ score: 0, employees: 0, meetings: 0 });
 
@@ -1414,6 +1416,58 @@ export function ArmsRaceGame() {
       mutedRef.current = !current;
       return !current;
     });
+  }, []);
+
+  const enterFullscreen = useCallback(async () => {
+    const target = gamePageRef.current as
+      | (HTMLElement & { webkitRequestFullscreen?: () => Promise<void> | void })
+      | null;
+    if (!target) return;
+
+    try {
+      if (target.requestFullscreen) {
+        await target.requestFullscreen();
+      } else if (target.webkitRequestFullscreen) {
+        await Promise.resolve(target.webkitRequestFullscreen());
+      }
+    } catch {
+      // Browsers may reject fullscreen when it is unavailable or restricted.
+    }
+  }, []);
+
+  const exitFullscreen = useCallback(async () => {
+    const fullscreenDocument = document as Document & {
+      webkitExitFullscreen?: () => Promise<void> | void;
+    };
+
+    try {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen();
+      } else if (fullscreenDocument.webkitExitFullscreen) {
+        await Promise.resolve(fullscreenDocument.webkitExitFullscreen());
+      }
+    } catch {
+      // Keep the game usable if the browser handles the exit itself.
+    }
+  }, []);
+
+  useEffect(() => {
+    const fullscreenDocument = document as Document & {
+      webkitFullscreenElement?: Element | null;
+    };
+    const syncFullscreen = () => {
+      setFullscreen(
+        Boolean(document.fullscreenElement ?? fullscreenDocument.webkitFullscreenElement),
+      );
+    };
+
+    syncFullscreen();
+    document.addEventListener("fullscreenchange", syncFullscreen);
+    document.addEventListener("webkitfullscreenchange", syncFullscreen);
+    return () => {
+      document.removeEventListener("fullscreenchange", syncFullscreen);
+      document.removeEventListener("webkitfullscreenchange", syncFullscreen);
+    };
   }, []);
 
   useEffect(() => {
@@ -1476,7 +1530,7 @@ export function ArmsRaceGame() {
   };
 
   return (
-    <main className="game-page">
+    <main ref={gamePageRef} className="game-page">
       <section className="game-shell" aria-label="AI Arms Race game">
         <div className="canvas-wrap">
           <canvas
@@ -1503,13 +1557,33 @@ export function ArmsRaceGame() {
           />
           <div className="scanlines" aria-hidden="true" />
           <div className="screen-glow" aria-hidden="true" />
-          <button
-            className="game-sound"
-            onClick={toggleMute}
-            aria-label={muted ? "Turn sound on" : "Mute sound"}
-          >
-            {muted ? "SOUND OFF" : "SOUND ON"}
-          </button>
+          <div className="game-actions">
+            <button
+              className="game-sound"
+              onClick={toggleMute}
+              aria-label={muted ? "Turn sound on" : "Mute sound"}
+            >
+              {muted ? "SOUND OFF" : "SOUND ON"}
+            </button>
+            {fullscreen ? (
+              <button
+                className="fullscreen-exit"
+                onClick={exitFullscreen}
+                aria-label="Exit fullscreen game"
+                title="Exit fullscreen"
+              >
+                ×
+              </button>
+            ) : (
+              <button
+                className="fullscreen-button"
+                onClick={enterFullscreen}
+                aria-label="Open game in fullscreen"
+              >
+                FULLSCREEN
+              </button>
+            )}
+          </div>
           <p className="source-meta game-source">
             <a
               href="https://github.com/rodrigoslino/ai-arms-race"
@@ -1519,7 +1593,7 @@ export function ArmsRaceGame() {
             >
               SOURCE ↗
             </a>
-            <span>BUILD 0.6.0</span>
+            <span>BUILD 0.6.1</span>
           </p>
 
           {screen === "playing" && (

@@ -318,19 +318,33 @@ kbd {
   outline: none;
 }
 
-.game-sound,
+.game-actions,
 .game-source {
   position: absolute;
   z-index: 6;
+}
+
+.game-actions {
+  top: max(8px, env(safe-area-inset-top));
+  right: max(8px, env(safe-area-inset-right));
+  display: flex;
+  align-items: stretch;
+  gap: 5px;
+}
+
+.game-sound,
+.fullscreen-button,
+.fullscreen-exit,
+.game-source {
   color: rgba(131, 144, 157, 0.52);
   font-size: 7px;
   font-weight: 900;
   letter-spacing: 0.08em;
 }
 
-.game-sound {
-  top: max(8px, env(safe-area-inset-top));
-  right: max(8px, env(safe-area-inset-right));
+.game-sound,
+.fullscreen-button,
+.fullscreen-exit {
   border: 1px solid rgba(48, 54, 75, 0.45);
   background: rgba(5, 6, 12, 0.34);
   padding: 6px 8px 5px;
@@ -339,11 +353,22 @@ kbd {
 }
 
 .game-sound:hover,
-.game-sound:focus-visible {
+.game-sound:focus-visible,
+.fullscreen-button:hover,
+.fullscreen-button:focus-visible,
+.fullscreen-exit:hover,
+.fullscreen-exit:focus-visible {
   color: var(--paper);
   border-color: var(--blue);
   opacity: 1;
   outline: none;
+}
+
+.fullscreen-exit {
+  width: 28px;
+  padding: 1px 0 0;
+  font-size: 18px;
+  line-height: 1;
 }
 
 .game-source {
@@ -461,6 +486,7 @@ kbd {
   }
 
   .game-sound,
+  .fullscreen-button,
   .game-source {
     font-size: 6px;
   }

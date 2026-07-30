@@ -34,9 +34,12 @@ test("server-renders the AI Arms Race game shell", async () => {
   assert.match(html, /THIS GAME IS SATIRE\. THE INCENTIVES ARE REAL\./);
   assert.match(html, /Arcade game area/);
   assert.match(html, /class="game-sound"/);
+  assert.match(html, /class="fullscreen-button"/);
+  assert.match(html, /Open game in fullscreen/);
+  assert.match(html, /FULLSCREEN/);
   assert.match(html, /View AI Arms Race source code on GitHub/);
   assert.doesNotMatch(
     html,
-    /codex-preview|react-loading-skeleton|class="topbar"|fullscreen-exit|FULLSCREEN/,
+    /codex-preview|react-loading-skeleton|class="topbar"/,
   );
 });
