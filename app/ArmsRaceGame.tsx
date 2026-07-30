@@ -103,6 +103,7 @@ interface GameWorld {
   shotIn: number;
   rapidFire: number;
   shield: number;
+  impactCooldown: number;
   weaponLevel: number;
   bossSpawned: boolean;
   bossDefeated: boolean;
@@ -186,6 +187,7 @@ function makeWorld(): GameWorld {
     shotIn: 0,
     rapidFire: 0,
     shield: 0,
+    impactCooldown: 0,
     weaponLevel: 1,
     bossSpawned: false,
     bossDefeated: false,
@@ -1120,6 +1122,7 @@ function updateWorld(
   w.shotIn -= dt;
   w.rapidFire = Math.max(0, w.rapidFire - dt);
   w.shield = Math.max(0, w.shield - dt);
+  w.impactCooldown = Math.max(0, w.impactCooldown - dt);
 
   const p = w.player;
   let dx = 0;
@@ -1281,7 +1284,44 @@ function updateWorld(
 
   for (let i = w.enemies.length - 1; i >= 0; i -= 1) {
     const enemy = w.enemies[i];
-    if (enemy.kind !== "REALITY" && overlap(enemy, p)) {
+    if (enemy.kind === "REALITY" && overlap(enemy, p)) {
+      const impactX = clamp(p.x + p.w / 2, enemy.x + 18, enemy.x + enemy.w - 18);
+      const impactY = enemy.y + enemy.h;
+
+      if (w.impactCooldown <= 0) {
+        w.impactCooldown = 0.65;
+        w.shake = 0.9;
+        burst(w, impactX, impactY, w.shield > 0 ? "#67f5c1" : "#ff435f", 28);
+        addShockwave(
+          w,
+          impactX,
+          impactY,
+          w.shield > 0 ? "#67f5c1" : "#ff435f",
+          105,
+          0.42,
+        );
+
+        if (w.shield <= 0) {
+          w.health -= 24;
+          w.texts.push({
+            x: p.x + p.w / 2,
+            y: p.y,
+            text: "-24% COLLISION",
+            color: "#ff435f",
+            life: 0.9,
+          });
+          w.banner = "PHYSICAL REALITY CHECK";
+        } else {
+          w.banner = "SHIELD ABSORBED IMPACT";
+        }
+        w.bannerTime = 0.75;
+        playSound(w.shield > 0 ? 150 : 48, 0.18, 0.07);
+      }
+
+      // Reality is solid: keep the player below the carrier instead of
+      // allowing the plane to fly through its hitbox.
+      p.y = clamp(enemy.y + enemy.h + 8, 82, HEIGHT - p.h - 12);
+    } else if (overlap(enemy, p)) {
       if (w.shield <= 0) w.health -= ["REGULATION", "ETHICS", "UNION"].includes(enemy.kind) ? 22 : 9;
       burst(w, enemy.x, enemy.y, enemyStats[enemy.kind].color, 18);
       w.enemies.splice(i, 1);
@@ -1606,7 +1646,7 @@ export function ArmsRaceGame() {
           >
             SOURCE ↗
           </a>
-          <span>BUILD 0.5.0</span>
+          <span>BUILD 0.5.1</span>
         </p>
       </footer>
     </main>

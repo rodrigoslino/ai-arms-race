@@ -27,7 +27,8 @@ the one thing no hype cycle can avoid.
 - Firing is automatic
 - Collect resources and layoffs to increase shareholder confidence
 - Clear the 40-person mass-layoff formation
-- Defeat the Reality carrier-fortress and survive the final explosion
+- Defeat the Reality carrier-fortress without colliding with its hull
+- Survive the final explosion
 
 ## Run locally
 
