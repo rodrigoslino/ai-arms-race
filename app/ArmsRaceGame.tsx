@@ -1565,24 +1565,6 @@ export function ArmsRaceGame() {
             >
               {muted ? "SOUND OFF" : "SOUND ON"}
             </button>
-            {fullscreen ? (
-              <button
-                className="fullscreen-exit"
-                onClick={exitFullscreen}
-                aria-label="Exit fullscreen game"
-                title="Exit fullscreen"
-              >
-                ×
-              </button>
-            ) : (
-              <button
-                className="fullscreen-button"
-                onClick={enterFullscreen}
-                aria-label="Open game in fullscreen"
-              >
-                FULLSCREEN
-              </button>
-            )}
           </div>
           <p className="source-meta game-source">
             <a
@@ -1593,11 +1575,24 @@ export function ArmsRaceGame() {
             >
               SOURCE ↗
             </a>
-            <span>BUILD 0.6.1</span>
+            <span>BUILD 0.7.0</span>
           </p>
 
           {screen === "playing" && (
             <p className="rotate-hint">ROTATE FOR A BIGGER VIEW • DRAG TO MOVE</p>
+          )}
+
+          {screen !== "title" && (
+            <button
+              className={`gameplay-fullscreen${fullscreen ? " is-active" : ""}`}
+              onClick={fullscreen ? exitFullscreen : enterFullscreen}
+              aria-label={fullscreen ? "Exit fullscreen game" : "Open game in fullscreen"}
+            >
+              <span className="fullscreen-icon" aria-hidden="true">
+                {fullscreen ? "×" : "⛶"}
+              </span>
+              <span>{fullscreen ? "EXIT" : "FULLSCREEN"}</span>
+            </button>
           )}
 
           {screen === "title" && (
@@ -1614,6 +1609,14 @@ export function ArmsRaceGame() {
               <button className="start-button" onClick={startGame} data-testid="start-game">
                 <span>START DISRUPTING</span>
                 <small>ENTER / SPACE</small>
+              </button>
+              <button
+                className={`title-fullscreen-button${fullscreen ? " is-active" : ""}`}
+                onClick={fullscreen ? exitFullscreen : enterFullscreen}
+                aria-label={fullscreen ? "Exit fullscreen game" : "Open game in fullscreen"}
+              >
+                <span aria-hidden="true">{fullscreen ? "×" : "⛶"}</span>
+                <span>{fullscreen ? "EXIT FULLSCREEN" : "PLAY FULLSCREEN"}</span>
               </button>
               <div className="title-controls">
                 <span><kbd>WASD</kbd> / <kbd>ARROWS</kbd> MOVE</span>

@@ -24,7 +24,8 @@ the one thing no hype cycle can avoid.
 - Move with `WASD` or the arrow keys
 - On mobile, drag the aircraft to move
 - The game automatically fills the available desktop or mobile viewport
-- Use `FULLSCREEN` to hide the browser chrome and `×` to return
+- Use the large `PLAY FULLSCREEN` button on the title screen; during a run, the
+  visible corner control lets you enter or exit fullscreen at any time
 - Firing is automatic
 - Collect resources and layoffs to increase shareholder confidence
 - Clear the 40-person mass-layoff formation
